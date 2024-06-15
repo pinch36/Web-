@@ -11,7 +11,7 @@
   <script src="https://unpkg.com/element-ui/lib/index.js"></script>
   <style>
     .el-header {
-      background-color: #E1F3D8;
+      background-color: #f4f4f4;
       color: #333;
       text-align: center;
       line-height: 60px;
@@ -21,7 +21,8 @@
     }
 
     .el-footer {
-      background-color: #B3C0D1;
+      background-color: #f4f4f4;
+      /* E1F3D8 */
       color: #333;
       position: fixed;
       line-height: 60px;
@@ -32,23 +33,38 @@
     }
 
     .el-aside {
-      background-color: #D3DCE6;
+      background-color: #dcd0c0;
       color: #333;
       text-align: center;
       line-height: 90px;
     }
 
     .el-main {
-      background-color: #E9EEF3;
+      background-color: #dcd0c0;
       color: #333;
       text-align: center;
       line-height: 60px;
-      padding-bottom: 60px;
       height: 700px;
     }
 
     .example-pagination-block+.example-pagination-block {
       margin-top: 10px;
+    }
+
+    .unread-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .read-item{
+      display: flex;
+      justify-content: space-between;
+    }
+    .read-button {
+      margin-left: auto;
+    }
+    .noticeType{
+      font-size: 16px;
     }
   </style>
 </head>
@@ -60,8 +76,8 @@
         <span style="width: 10%"></span>
         <span style="width: 40%;font-weight: 700;">teaching-system</span>
         <span>
-          <el-button type="primary" round @click="signIn">登录</el-button>
-          <el-button type="primary" round icon="el-icon-user-solid" @click="personalSpace">我的</el-button>
+          <el-button v-if="isLogin == false" type="primary" round @click="signIn">登录</el-button>
+          <el-button v-if="isLogin == true" type="primary" round icon="el-icon-user-solid" @click="personalSpace">我的</el-button>
         </span>
       </el-header>
       <el-container>
@@ -72,24 +88,22 @@
               <el-collapse>
                 <el-collapse-item name="unread">
                   <template #title>
-                    <span>未读</span>
+                    <span class="noticeType">未读</span>
                     <el-icon>
                       <ChatRound />
                     </el-icon>
                   </template>
-                  <div>
-                    1
-                  </div>
-                  <div>
-                    2
+                  <div class="unread-item" v-if="isLogin == true" v-for="(item, index) in unReadData" :key="index">
+                    {{ item }}
+                    <el-button class="read-button" @click="markAsRead(item)" type="primary" size="small">已读</el-button>
                   </div>
                 </el-collapse-item>
-                <el-collapse-item title="已读" name="read">
-                  <div>
-                    1
-                  </div>
-                  <div>
-                    2
+                <el-collapse-item name="read">
+                  <template #title>
+                    <span class="noticeType">已读</span>
+                  </template>
+                  <div class="read-item" v-if="isLogin == true" v-for="(item, index) in readData" :key="index">
+                    {{ item }}
                   </div>
                 </el-collapse-item>
               </el-collapse>
@@ -98,59 +112,183 @@
         </el-aside>
         <el-container>
           <el-main>
-            <el-input v-model="input" placeholder="请输入需要查找的题目"></el-input>
+            <el-input v-model="input" placeholder="请输入需要查找的题目" @change="search"></el-input>
             <div>
               <el-table :data="tableData" style="width: 100%;margin-bottom: 60px;">
                 <el-table-column prop="testName" label="题目" width="180">
                 </el-table-column>
                 <el-table-column prop="id" label="发布人" width="180">
                 </el-table-column>
-                <el-table-column prop="request" label="要求">
+                <el-table-column prop="description" label="要求">
+                </el-table-column>
+                <el-table-column prop="createTime" label="发布时间" width="180">
+                </el-table-column>
+                <el-table-column prop="status" label="状态" width="180">
+                  <template v-slot:default="scope">
+                    <el-icon v-if="scope.row.status === 1 && isLogin == true" name="success" style="color: green;font-size: 20px;">
+                    </el-icon>
+                    <el-icon v-if="scope.row.status === 2 && isLogin == true" name="info" style="color: orange;font-size: 20px;"
+                      title="消息未读"></el-icon>
+                  </template>
                 </el-table-column>
                 <el-table-column prop="testData" label="详情" width="180">
                   <template v-slot:default="scope">
-                    <el-button type="primary" size="small" @click="getTestData(scope.row)">
+                    <el-button type="primary" size="small" @click="getOneTest(scope.row)">
                       <span>详情</span>
                     </el-button>
                   </template>
                 </el-table-column>
             </div>
-            <div class="example-pagination-block">
-              <el-pagination layout="prev, pager, next" :total="50" />
-            </div>
           </el-main>
-          <el-footer>Footer</el-footer>
+          <el-footer>就这个旋律心不心跳</el-footer>
         </el-container>
       </el-container>
     </el-container>
   </div>
 </body>
-
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
   new Vue({
     el: '#app',
     data() {
       return {
-        tableData: [{
-            testName: 'Test 1',
-            id: 'Alice',
-            request: 'Simple request'
-          },
-          // ... 其他数据项  
-        ]
+        tableData: [],
+        input: '',
+        unReadData: [],
+        readData: [],
+        isLogin: true,
+        user:{
+          username: "曹弘文",
+          role: "student"
+        }
       };
     },
     methods: {
-      getTestData(row) {
-        alert('按钮被点击了', row);
+      search() {
+        axios.get('http://localhost:8090/test/search/' + 'salt' + this.input).then(
+          response => {
+            this.tableData = response.data.data;
+            console.log('成功', response.data);
+          },
+          error => {
+            console.log('失败', error.message);
+          }
+        )
+      },
+      markAsRead(item) {
+        const statusUpdate = {
+          username: this.user.username,
+          description: item
+        };
+        axios.put('http://localhost:8090/notice/update/status', statusUpdate).then(
+          response => {
+            console.log('成功', response.data);
+          },
+          error => {
+            console.log('失败', error.message);
+          }
+        );
+        this.getNoticeUnRead();
+        this.getNoticeRead();
+      },
+      getOneTest(row) {
+        let oneTest;
+        const statusUpdate = {
+          username: this.user.username,
+          testName: row.testName
+        };
+        axios.put('http://localhost:8090/test/update/status', statusUpdate).then(
+          response => {
+            console.log('成功', response.data);
+          },
+          error => {
+            console.log('失败', error.message);
+          }
+        );
+        axios.get('http://localhost:8090/test/' + row.testName).then(
+          response => {
+            oneTest = response.data.data;
+            this.$alert(oneTest, '题目详情', {
+              confirmButtonText: '确定',
+              type: 'success',
+            });
+            console.log('成功', response.data);
+          },
+          error => {
+            console.log('失败', error.message);
+          }
+        );
+        this.search();
       },
       signIn() {
         alert('跳转到登录页面');
       },
       personalSpace() {
         alert('跳转到个人空间');
-      }
-    }
+      },
+      getTests() {
+        axios.get('http://localhost:8090/test/all').then(
+          response => {
+            this.tableData = response.data.data;
+            console.log('成功', response.data);
+          },
+          error => {
+            console.log('失败', error.message);
+          }
+        )
+      },
+
+      getNoticeRead() {
+        const noticeData = {
+          username: this.user.username,
+          status: 0
+        };
+        axios.post('http://localhost:8090/notice', noticeData, {
+          // 这里可以添加请求头，如果需要的话  
+          headers: {
+            'Content-Type': 'application/json',
+            // 其他可能的请求头...  
+          }
+        }).then(
+          response => {
+            this.readData = response.data.data;
+            console.log('成功', response.data);
+          },
+          error => {
+            console.log('失败', error.message);
+          }
+        )
+      },
+      getNoticeUnRead() {
+        const noticeData = {
+          username: this.user.username,
+          status: 1
+        };
+        axios.post('http://localhost:8090/notice', noticeData, {
+          // 这里可以添加请求头，如果需要的话  
+          headers: {
+            'Content-Type': 'application/json',
+            // 其他可能的请求头...  
+          }
+        }).then(
+          response => {
+            this.unReadData = response.data.data;
+            console.log('成功', response.data);
+          },
+          error => {
+            console.log('失败', error.message);
+          }
+        )
+      },
+
+
+    },
+
+    async created() {
+      this.getTests();
+      this.getNoticeRead();
+      this.getNoticeUnRead();
+    },
   })
 </script>
 
