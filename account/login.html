@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 
     <style>
         * {
@@ -31,7 +33,7 @@
             flex-direction: column;
             border-radius: 30px;
             box-shadow: 0 0 2em #e6e9f9;
-            gap: 2em;
+            gap: 1em;
         }
 
         .screen-1 .logo {
@@ -75,11 +77,13 @@
             gap: 0.5em;
             border-radius: 20px;
             color: #4d4d4d;
+            /*margin: 0;*/
         }
 
         .screen-1 .password input {
             outline: none;
             border: none;
+            width: 400px;
         }
 
         .screen-1 .password input::placeholder {
@@ -94,6 +98,7 @@
 
         .screen-1 .password .show-hide {
             margin-right: -5em;
+            cursor: pointer;
         }
 
         .screen-1 .login {
@@ -139,6 +144,77 @@
             color: red;
         }
 
+        .remember {
+            display: flex;
+            justify-content: flex-end; /* 靠右 */
+            align-items: center;
+        }
+
+        .remember input {
+            margin-right: 0.5em;
+        }
+
+        /* 美化 .remember 容器 */
+        .remember {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end; /* 将复选框和标签靠右对齐 */
+            margin-bottom: 1em;
+        }
+
+        /* 隐藏默认复选框 */
+        .remember input[type="checkbox"] {
+            display: none;
+        }
+
+        /* 创建自定义复选框 */
+        .remember label {
+            position: relative;
+            padding-left: 25px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* 自定义复选框的外观 */
+        .remember label::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            border: 2px solid #3e4684; /* 边框颜色 */
+            border-radius: 4px; /* 圆角 */
+            background: white;
+        }
+
+        /* 选中复选框后的外观 */
+        .remember input[type="checkbox"]:checked + label::before {
+            background-color: #3e4684; /* 选中后的背景颜色 */
+            border-color: #3e4684;
+        }
+
+        /* 添加复选框选中时的对勾 */
+        .remember input[type="checkbox"]:checked + label::after {
+            content: "";
+            position: absolute;
+            left: 8px;
+            top: 45%;
+            transform: translateY(-50%) rotate(45deg);
+            width: 5px;
+            height: 12px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+        }
+
+        /* 标签文本样式 */
+        .remember label {
+            color: #4d4d4d;
+            font-size: 0.9em;
+        }
+
+
     </style>
 </head>
 <body>
@@ -175,7 +251,7 @@
     <div class="account">
         <label for="account" style="font-weight: bold;">账 号</label>
         <div class="sec-2">
-            <ion-icon name="mail-outline"></ion-icon>
+            <ion-icon name="person-outline"></ion-icon>
             <input id="account" type="account" name="account" placeholder="请输入账号"/>
 
         </div>
@@ -191,6 +267,10 @@
         </div>
         <!-- 提示信息 -->
         <span class="result" id="password-error"></span>
+    </div>
+    <div class="remember">
+        <input type="checkbox" id="remember" name="remember">
+        <label for="remember">记住密码</label>
     </div>
     <button class="login" id="login">登录</button>
     <button class="reset" id="reset">重置</button>
@@ -308,6 +388,16 @@
     }
 </script>
 <script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        let expirationTime = localStorage.getItem('expirationTime');
+        let currentTime = new Date().getTime();
+
+        if (localStorage.getItem('remember') === 'true' && expirationTime > currentTime) {
+            document.getElementById('account').value = localStorage.getItem('account');
+            document.getElementById('password').value = localStorage.getItem('password');
+            document.getElementById('remember').checked = true;
+        }
+    });
     // 添加点击事件监听器
     document.getElementById("login").addEventListener("click", handleSubmit);
     document.getElementById("reset").addEventListener("click", handleReset);
@@ -323,7 +413,7 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 // 清空学号和密码输入框内容
-                document.getElementById('username').value = '';
+                document.getElementById('account').value = '';
                 document.getElementById('password').value = '';
                 Swal.fire(
                     '已重置!',
@@ -334,37 +424,70 @@
         });
     }
 
-    // 使用SHA-256加密
-    function sha256Encrypt(password) {
-        return CryptoJS.SHA256(password).toString();
+
+    // 生成随机的盐值
+    function generateSalt(length) {
+        const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let salt = '';
+        for (let i = 0; i < length; i++) {
+            salt += charset.charAt(Math.floor(Math.random() * charset.length));
+        }
+        return salt;
+    }
+
+    // 添加随机盐值进行加盐哈希
+    function saltedHash(password, salt) {
+        const saltedPassword = password + salt;
+        return CryptoJS.SHA256(saltedPassword).toString();
     }
 
     //提交表单
     function handleSubmit() {
+        let account = document.getElementById('account').value;
+        let password = document.getElementById('password').value;
+        let remember = document.getElementById('remember').checked;
+        // let expirationTime = new Date().getTime() + 7 * 24 * 60 * 60 * 1000; // 设置有效期为7天
+        let expirationTime = new Date().getTime() + 10 * 1000; // 设置有效期为10s
+        // 保存到localStorage
+        if (remember) {
+            localStorage.setItem('account', account);
+            localStorage.setItem('password', password);
+            localStorage.setItem('remember', true);
+            localStorage.setItem('expirationTime', expirationTime);
+        } else {
+            localStorage.removeItem('account');
+            localStorage.removeItem('password');
+            localStorage.setItem('remember', false);
+            localStorage.removeItem('expirationTime');
+        }
+
         validateAccount();
         validatePassword();
         if (!flag1 || !flag2) {
             return;
         }
-        const account = document.getElementById("account").value;
-        const password = document.getElementById("password").value;
-        const encryptedPassword = sha256Encrypt(password);
 
-        mockPost({account: account, password: encryptedPassword}).then(receiveSuccess).catch(receiveError);
+        const salt = generateSalt(16); // 生成长度为16的随机盐值
+        const hashedPassword = saltedHash(password, salt);
+        console.log("原始密码:", password);
+        console.log("盐值:", salt);
+        console.log("加盐哈希后的密码:", hashedPassword);
+        // const decryptedPassword = CryptoJS.AES.decrypt(encryptedPassword, 'secretKey').toString(CryptoJS.enc.Utf8);
+        loginPost({account: account, password: hashedPassword}).then(receiveSuccess).catch(receiveError);
     }
 
-    // 模拟POST请求的函数
-    function mockPost(params) {
-        console.log(params.account);
-        console.log(params.password);
+    // POST请求
+    function loginPost(params) {
+        console.log("post传输账号", params.account);
+        console.log("post传输密码", params.password);
         return new Promise((resolve, reject) => {
             // 模拟网络请求
             setTimeout(() => {
                 // 随机返回成功或失败的结果
                 if (Math.random() > 0.5) {
-                    resolve({status: "success", message: "注册成功", code: 200});
+                    resolve({status: "success", message: "登录成功", code: 200});
                 } else {
-                    reject({status: "error", message: "系统异常，注册失败", code: 500});
+                    reject({status: "error", message: "账号或密码错误，登录失败", code: 500});
                 }
             }, 500);
         });
@@ -394,8 +517,21 @@
 
     window.receiveSuccess = receiveSuccess;
     window.receiveError = receiveError;
+</script>
+<script>
+    // 切换密码显示隐藏
+    const showHide = document.querySelector('.show-hide');
+    const passwordField = document.querySelector('.pas');
 
-
+    showHide.addEventListener('click', function () {
+        if (passwordField.type === "password") {
+            passwordField.type = "text";
+            showHide.name = "eye-off-outline";
+        } else {
+            passwordField.type = "password";
+            showHide.name = "eye-outline";
+        }
+    });
 </script>
 </body>
 </html>
