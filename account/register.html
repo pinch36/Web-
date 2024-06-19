@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>注册</title>
+    <title>学生注册</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
@@ -10,14 +10,14 @@
     <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 
     <style>
-        /* 样式和之前相同 */
         * {
             font-family: "Poppins";
         }
 
         body {
             user-select: none;
-            overflow-y: hidden;
+            /*overflow-y: hidden;*/
+            overflow-y: auto; /* 允许垂直滚动 */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -27,7 +27,7 @@
 
         .screen-1 {
             width: 500px;
-            height: 800px;
+            height: 1000px;
             background: #f1f7fe;
             padding: 2em;
             display: flex;
@@ -43,7 +43,7 @@
             margin-left: 5em;
         }
 
-        .screen-1 .account, .screen-1 .password, .screen-1 .idnumber {
+        .screen-1 .input-group {
             background: white;
             box-shadow: 0 0 2em #e6e9f9;
             padding: 1em;
@@ -55,18 +55,18 @@
             margin-top: 1em;
         }
 
-        .screen-1 .account input, .screen-1 .password input, .screen-1 .idnumber input {
+        .screen-1 .input-group input {
             outline: none;
             border: none;
             width: 400px;
         }
 
-        .screen-1 .account input::placeholder, .screen-1 .password input::placeholder, .screen-1 .idnumber input::placeholder {
+        .screen-1 .input-group input::placeholder {
             color: black;
             font-size: 0.9em;
         }
 
-        .screen-1 .account ion-icon, .screen-1 .password ion-icon, .screen-1 .idnumber ion-icon {
+        .screen-1 .input-group ion-icon {
             color: #4d4d4d;
             margin-bottom: -0.2em;
         }
@@ -140,16 +140,16 @@
               vector-effect="non-scaling-stroke" points="-50,-50 -50,50 50,50 50,-50 "></polygon>
     </g>
   </svg>
-    <div class="account">
-        <label for="account" style="font-weight: bold;">账 号</label>
+    <div class="input-group account">
+        <label for="account" style="font-weight: bold;">学 号</label>
         <div class="sec-2">
             <ion-icon name="person-outline"></ion-icon>
-            <input id="account" type="account" name="account" placeholder="请输入账号"/>
+            <input id="account" type="text" name="account" placeholder="请输入学号"/>
         </div>
         <!-- 提示信息 -->
         <span class="result" id="account-error"></span>
     </div>
-    <div class="password">
+    <div class="input-group password">
         <label for="password" style="font-weight: bold;">密 码</label>
         <div class="sec-2">
             <ion-icon name="lock-closed-outline"></ion-icon>
@@ -159,7 +159,16 @@
         <!-- 提示信息 -->
         <span class="result" id="password-error"></span>
     </div>
-    <div class="idnumber">
+    <div class="input-group name">
+        <label for="name" style="font-weight: bold;">姓名</label>
+        <div class="sec-2">
+            <ion-icon name="person-circle-outline"></ion-icon>
+            <input id="name" type="text" name="name" placeholder="请输入姓名"/>
+        </div>
+        <!-- 提示信息 -->
+        <span class="result" id="name-error"></span>
+    </div>
+    <div class="input-group idnumber">
         <label for="idnumber" style="font-weight: bold;">身份证号</label>
         <div class="sec-2">
             <ion-icon name="card-outline"></ion-icon>
@@ -168,86 +177,215 @@
         <!-- 提示信息 -->
         <span class="result" id="idnumber-error"></span>
     </div>
-    <button class="register" id="register">注册</button>
-    <button class="reset" id="reset">重置</button>
+    <div class="input-group phone">
+        <label for="phone" style="font-weight: bold;">手机号码</label>
+        <div class="sec-2">
+            <ion-icon name="call-outline"></ion-icon>
+            <input id="phone" type="text" name="phone" placeholder="请输入手机号码"/>
+        </div>
+        <!-- 提示信息 -->
+        <span class="result" id="phone-error"></span>
+    </div>
+    <div class="input-group email">
+        <label for="email" style="font-weight: bold;">邮箱</label>
+        <div class="sec-2">
+            <ion-icon name="mail-outline"></ion-icon>
+            <input id="email" type="text" name="email" placeholder="请输入邮箱"/>
+        </div>
+        <!-- 提示信息 -->
+        <span class="result" id="email-error"></span>
+    </div>
+    <button class="register" onclick="validateForm()">注册</button>
+    <button class="reset" onclick="resetForm()">重置</button>
 </div>
 
 <script>
-    // 获取输入框和按钮
-    const accountInput = document.getElementById("account");
-    const passwordInput = document.getElementById("password");
-    const idnumberInput = document.getElementById("idnumber");
-    const registerButton = document.getElementById("register");
-    const resetButton = document.getElementById("reset");
+    const accountInput = document.getElementById('account');
+    const passwordInput = document.getElementById('password');
+    const idnumberInput = document.getElementById('idnumber');
+    const nameInput = document.getElementById('name');
+    const phoneInput = document.getElementById('phone');
+    const emailInput = document.getElementById('email');
+    const accountError = document.getElementById('account-error');
+    const passwordError = document.getElementById('password-error');
+    const idnumberError = document.getElementById('idnumber-error');
+    const nameError = document.getElementById('name-error');
+    const phoneError = document.getElementById('phone-error');
+    const emailError = document.getElementById('email-error');
 
-    // 错误信息元素
-    const idnumberError = document.getElementById("idnumber-error");
+    // 显示和隐藏密码
+    document.querySelector('.show-hide').addEventListener('click', function () {
+        const passwordField = document.querySelector('.pas');
+        const icon = this;
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            icon.name = 'eye-off-outline';
+        } else {
+            passwordField.type = 'password';
+            icon.name = 'eye-outline';
+        }
+    });
 
-    // 添加事件监听器，实时验证输入
-    accountInput.addEventListener("input", validateAccount);
-    accountInput.addEventListener("blur", validateAccount);
-    passwordInput.addEventListener("input", validatePassword);
-    passwordInput.addEventListener("blur", validatePassword);
-    idnumberInput.addEventListener("input", validateIdnumber);
-    idnumberInput.addEventListener("blur", validateIdnumber);
+    function validateForm() {
+        // 清空之前的错误信息
+        accountError.textContent = '';
+        passwordError.textContent = '';
+        idnumberError.textContent = '';
+        nameError.textContent = '';
+        phoneError.textContent = '';
+        emailError.textContent = '';
+
+        // 获取输入值
+        const account = accountInput.value.trim();
+        const password = passwordInput.value.trim();
+        const idnumber = idnumberInput.value.trim();
+        const name = nameInput.value.trim();
+        const phone = phoneInput.value.trim();
+        const email = emailInput.value.trim();
+
+        // 验证标志
+        let isValid = true;
+
+        // 验证学号
+        if (!account) {
+            accountError.textContent = '学号不能为空';
+            isValid = false;
+        } else if (!validateAccount(account)) {
+            isValid = false;
+        }
+
+        // 验证密码
+        if (!password) {
+            passwordError.textContent = '密码不能为空';
+            isValid = false;
+        } else if (!validatePassword(password)) {
+            isValid = false;
+        }
+
+        // 验证身份证号
+        if (!idnumber) {
+            idnumberError.textContent = '身份证号不能为空';
+            isValid = false;
+        } else if (!validateIdNumber(idnumber)) {
+            idnumberError.textContent = '无效的身份证号';
+            isValid = false;
+        }
+
+        // 验证姓名
+        if (!name) {
+            nameError.textContent = '姓名不能为空';
+            isValid = false;
+        } else if (!/^[\u4e00-\u9fa5]{1,10}$/.test(name)) {
+            nameError.textContent = '姓名必须是十位以内的中文字符';
+            isValid = false;
+        }
+
+        // 验证手机号码
+        if (!phone) {
+            phoneError.textContent = '手机号码不能为空';
+            isValid = false;
+        } else if (!validatePhone(phone)) {
+            phoneError.textContent = '手机号码应为11位数字';
+            isValid = false;
+        }
+
+        // 验证邮箱
+        if (!email) {
+            emailError.textContent = '邮箱不能为空';
+            isValid = false;
+        } else if (!validateEmail(email)) {
+            emailError.textContent = '无效的邮箱';
+            isValid = false;
+        }
+
+        // 如果验证通过，弹出成功消息
+        if (isValid) {
+            Swal.fire({
+                icon: 'success',
+                title: '注册成功',
+                text: '您的学号已成功注册！',
+            });
+        }
+    }
+
+    function resetForm() {
+        Swal.fire({
+            title: '确认重置表单吗？',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: '确认',
+            cancelButtonText: '取消'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // 清空输入框
+                accountInput.value = '';
+                passwordInput.value = '';
+                idnumberInput.value = '';
+                nameInput.value = '';
+                phoneInput.value = '';
+                emailInput.value = '';
+
+                // 清空错误信息
+                accountError.textContent = '';
+                passwordError.textContent = '';
+                idnumberError.textContent = '';
+                nameError.textContent = '';
+                phoneError.textContent = '';
+                emailError.textContent = '';
+                Swal.fire(
+                    '已重置!',
+                    '表单内容已被清空。',
+                    'success'
+                );
+            }
+        });
+
+    }
+
+    function validateIdNumber(idNumber) {
+        // 这里是一个简单的身份证号验证逻辑，你可以根据需要进行调整
+        const regex = /^\d{15}$|^\d{18}$|^\d{17}(\d|X|x)$/;
+        return regex.test(idNumber);
+    }
+
+    function validatePhone(phone) {
+        // 手机号码验证逻辑
+        const regex = /^1[3-9]\d{9}$/;
+        return regex.test(phone);
+    }
+
+    function validateEmail(email) {
+        // 邮箱验证逻辑
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regex.test(email);
+    }
 
     let flag1, flag2;
 
     // 判断表单合法性
-    function validateAccount() {
-        const accountError = document.getElementById("account-error");
-        const accountValue = accountInput.value.trim(); // 获取输入框的值，并去除首尾空格
-
-        accountError.innerText = ""; // 先清空错误提示
-        registerButton.disabled = true; // 先禁用提交按钮
-        registerButton.classList.add("disabled");
-        flag1 = true;
-
-        if (accountValue.trim() === "") {
-            accountError.innerText = "账号不能为空";
-            flag1 = false;
-            return false;
-        }
+    function validateAccount(accountValue) {
+        accountError.innerText = "";
 
         if (accountValue.length !== 10) {
             flag1 = false;
             if (accountError.innerText !== "")
                 accountError.innerText += "，";
-            accountError.innerText += "账号长度应为10位数字";
+            accountError.innerText += "学号长度应为10位数字";
         }
 
         if (!/^[0-9]*$/.test(accountValue)) {
             flag1 = false;
             if (accountError.innerText !== "")
                 accountError.innerText += "，";
-            accountError.innerText += "账号仅能包含数字";
+            accountError.innerText += "学号仅能包含数字";
         }
-
-        if (flag1 && flag2) {
-            // 在恢复时将 disabled 属性设置为 false
-            loginButton.disabled = false;
-
-            // 移除 disabled 类名
-            loginButton.classList.remove("disabled");
-        }
-        return true;
     }
 
     // 判断表单合法性
-    function validatePassword() {
-        const passwordError = document.getElementById("password-error");
-        const passwordValue = passwordInput.value.trim(); // 获取输入框的值，并去除首尾空格
+    function validatePassword(passwordValue) {
 
         passwordError.innerText = ""; // 先清空错误提示
-        registerButton.disabled = true; // 先禁用提交按钮
-        registerButton.classList.add("disabled");
-        flag2 = true;
 
-        if (passwordValue.trim() === "") {
-            flag2 = false;
-            passwordError.innerText = "密码不能为空";
-            return false;
-        }
         let num = 0;
         if (/(?=.*\d)/.test(passwordValue))
             num++;
@@ -260,7 +398,7 @@
         if (!/^[a-zA-Z\d!@#$%^&*.]{8,20}$/.test(passwordValue) && num < 2) {
             flag2 = false;
             passwordError.innerText = "密码长度应为8-20个字符，且密码需同时包含字母、数字或特殊字符两种及以上";
-            return false;
+            return;
         }
 
         if (!/^[a-zA-Z\d!@#$%^&*.]{8,20}$/.test(passwordValue)) {
@@ -275,116 +413,7 @@
                 passwordError.innerText += "，";
             passwordError.innerText += "密码需同时包含字母、数字或特殊字符两种及以上";
         }
-
-        if (flag1 && flag2) {
-            // 在恢复时将 disabled 属性设置为 false
-            registerButton.disabled = false;
-
-            // 移除 disabled 类名
-            registerButton.classList.remove("disabled");
-        }
-        return true;
     }
-
-    function validateIdnumber() {
-        const idnumberValue = idnumberInput.value;
-        const idnumberRegex = /^\d{18}$/;
-        if (!idnumberValue) {
-            idnumberError.textContent = "身份证号不能为空";
-        } else if (!idnumberRegex.test(idnumberValue)) {
-            idnumberError.textContent = "身份证号格式不正确";
-        } else {
-            idnumberError.textContent = "";
-        }
-    }
-
-    // 重置按钮逻辑
-    resetButton.addEventListener("click", function () {
-        accountInput.value = "";
-        passwordInput.value = "";
-        idnumberInput.value = "";
-        accountError.textContent = "";
-        passwordError.textContent = "";
-        idnumberError.textContent = "";
-    });
-
-    // 注册按钮逻辑
-    registerButton.addEventListener("click", function () {
-        const accountValue = accountInput.value;
-        const passwordValue = passwordInput.value;
-        const idnumberValue = idnumberInput.value;
-
-        // 简单验证
-        if (!accountValue || !passwordValue || !idnumberValue) {
-            Swal.fire({
-                icon: 'error',
-                title: '错误',
-                text: '请填写所有字段'
-            });
-            return;
-        }
-
-        const idnumberRegex = /^\d{18}$/;
-        if (!idnumberRegex.test(idnumberValue)) {
-            Swal.fire({
-                icon: 'error',
-                title: '错误',
-                text: '身份证号格式不正确'
-            });
-            return;
-        }
-
-        // 数据哈希处理
-        const hashedPassword = CryptoJS.SHA256(passwordValue).toString();
-
-        // 发送POST请求
-        fetch('/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                account: accountValue,
-                password: hashedPassword,
-                idnumber: idnumberValue
-            })
-        }).then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: '注册成功',
-                        text: '您已成功注册'
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: '错误',
-                        text: data.message || '注册失败'
-                    });
-                }
-            }).catch(error => {
-            Swal.fire({
-                icon: 'error',
-                title: '错误',
-                text: '请求失败，请稍后重试'
-            });
-            console.error('Error:', error);
-        });
-    });
-
-    // 显示和隐藏密码
-    const showHideIcon = document.querySelector(".show-hide");
-    showHideIcon.addEventListener("click", function () {
-        const passwordFieldType = passwordInput.getAttribute("type");
-        if (passwordFieldType === "password") {
-            passwordInput.setAttribute("type", "text");
-            showHideIcon.setAttribute("name", "eye-off-outline");
-        } else {
-            passwordInput.setAttribute("type", "password");
-            showHideIcon.setAttribute("name", "eye-outline");
-        }
-    });
 </script>
 </body>
 </html>
