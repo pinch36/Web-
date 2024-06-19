@@ -415,6 +415,9 @@
                 // 清空学号和密码输入框内容
                 document.getElementById('account').value = '';
                 document.getElementById('password').value = '';
+
+                document.getElementById("account-error").innerText = '';
+                document.getElementById("password-error").innerText = '';
                 Swal.fire(
                     '已重置!',
                     '表单内容已被清空。',
