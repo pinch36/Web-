@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>注册</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
+    <style>
+        /* 样式和之前相同 */
+        * {
+            font-family: "Poppins";
+        }
+
+        body {
+            user-select: none;
+            overflow-y: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #dde5f4;
+            height: 100vh;
+        }
+
+        .screen-1 {
+            width: 500px;
+            height: 800px;
+            background: #f1f7fe;
+            padding: 2em;
+            display: flex;
+            flex-direction: column;
+            border-radius: 30px;
+            box-shadow: 0 0 2em #e6e9f9;
+            /*gap: 1em;*/
+        }
+
+        .screen-1 .logo {
+            height: 150px;
+            margin-top: -3em;
+            margin-left: 5em;
+        }
+
+        .screen-1 .account, .screen-1 .password, .screen-1 .idnumber {
+            background: white;
+            box-shadow: 0 0 2em #e6e9f9;
+            padding: 1em;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5em;
+            border-radius: 20px;
+            color: #4d4d4d;
+            margin-top: 1em;
+        }
+
+        .screen-1 .account input, .screen-1 .password input, .screen-1 .idnumber input {
+            outline: none;
+            border: none;
+            width: 400px;
+        }
+
+        .screen-1 .account input::placeholder, .screen-1 .password input::placeholder, .screen-1 .idnumber input::placeholder {
+            color: black;
+            font-size: 0.9em;
+        }
+
+        .screen-1 .account ion-icon, .screen-1 .password ion-icon, .screen-1 .idnumber ion-icon {
+            color: #4d4d4d;
+            margin-bottom: -0.2em;
+        }
+
+        .screen-1 .password .show-hide {
+            margin-right: -5em;
+            cursor: pointer;
+        }
+
+        .screen-1 .register {
+            padding: 1em;
+            background: #3e4684;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+
+        .screen-1 .reset {
+            padding: 1em;
+            background: #A6B1E1;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+
+        .result {
+            text-align: right;
+            font-size: xx-small;
+            float: right;
+            clear: right;
+            color: red;
+        }
+
+        button {
+            cursor: pointer;
+            /*margin: 2em;*/
+            margin-top: 2em;
+        }
+    </style>
+</head>
+<body>
+<div class="screen-1">
+    <svg class="logo" xmlns="http://www.w3.org/2000/svg" version="1.1" width="300" height="300"
+         viewbox="0 0 640 480" xml:space="preserve">
+    <g transform="matrix(3.31 0 0 3.31 320.4 240.4)">
+      <circle style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(61,71,133); fill-rule: nonzero; opacity: 1;"
+              cx="0" cy="0" r="40"></circle>
+    </g>
+        <g transform="matrix(0.98 0 0 0.98 268.7 213.7)">
+      <circle style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+              cx="0" cy="0" r="40"></circle>
+    </g>
+        <g transform="matrix(1.01 0 0 1.01 362.9 210.9)">
+      <circle style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+              cx="0" cy="0" r="40"></circle>
+    </g>
+        <g transform="matrix(0.92 0 0 0.92 318.5 286.5)">
+      <circle style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+              cx="0" cy="0" r="40"></circle>
+    </g>
+        <g transform="matrix(0.16 -0.12 0.49 0.66 290.57 243.57)">
+      <polygon
+              style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+              points="-50,-50 -50,50 50,50 50,-50 "></polygon>
+    </g>
+        <g transform="matrix(0.16 0.1 -0.44 0.69 342.03 248.34)">
+      <polygon
+              style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+              vector-effect="non-scaling-stroke" points="-50,-50 -50,50 50,50 50,-50 "></polygon>
+    </g>
+  </svg>
+    <div class="account">
+        <label for="account" style="font-weight: bold;">账 号</label>
+        <div class="sec-2">
+            <ion-icon name="person-outline"></ion-icon>
+            <input id="account" type="account" name="account" placeholder="请输入账号"/>
+        </div>
+        <!-- 提示信息 -->
+        <span class="result" id="account-error"></span>
+    </div>
+    <div class="password">
+        <label for="password" style="font-weight: bold;">密 码</label>
+        <div class="sec-2">
+            <ion-icon name="lock-closed-outline"></ion-icon>
+            <input id="password" class="pas" type="password" name="password" placeholder="请输入密码"/>
+            <ion-icon class="show-hide" name="eye-outline"></ion-icon>
+        </div>
+        <!-- 提示信息 -->
+        <span class="result" id="password-error"></span>
+    </div>
+    <div class="idnumber">
+        <label for="idnumber" style="font-weight: bold;">身份证号</label>
+        <div class="sec-2">
+            <ion-icon name="card-outline"></ion-icon>
+            <input id="idnumber" type="text" name="idnumber" placeholder="请输入身份证号"/>
+        </div>
+        <!-- 提示信息 -->
+        <span class="result" id="idnumber-error"></span>
+    </div>
+    <button class="register" id="register">注册</button>
+    <button class="reset" id="reset">重置</button>
+</div>
+
+<script>
+    // 获取输入框和按钮
+    const accountInput = document.getElementById("account");
+    const passwordInput = document.getElementById("password");
+    const idnumberInput = document.getElementById("idnumber");
+    const registerButton = document.getElementById("register");
+    const resetButton = document.getElementById("reset");
+
+    // 错误信息元素
+    const idnumberError = document.getElementById("idnumber-error");
+
+    // 添加事件监听器，实时验证输入
+    accountInput.addEventListener("input", validateAccount);
+    accountInput.addEventListener("blur", validateAccount);
+    passwordInput.addEventListener("input", validatePassword);
+    passwordInput.addEventListener("blur", validatePassword);
+    idnumberInput.addEventListener("input", validateIdnumber);
+    idnumberInput.addEventListener("blur", validateIdnumber);
+
+    let flag1, flag2;
+
+    // 判断表单合法性
+    function validateAccount() {
+        const accountError = document.getElementById("account-error");
+        const accountValue = accountInput.value.trim(); // 获取输入框的值，并去除首尾空格
+
+        accountError.innerText = ""; // 先清空错误提示
+        registerButton.disabled = true; // 先禁用提交按钮
+        registerButton.classList.add("disabled");
+        flag1 = true;
+
+        if (accountValue.trim() === "") {
+            accountError.innerText = "账号不能为空";
+            flag1 = false;
+            return false;
+        }
+
+        if (accountValue.length !== 10) {
+            flag1 = false;
+            if (accountError.innerText !== "")
+                accountError.innerText += "，";
+            accountError.innerText += "账号长度应为10位数字";
+        }
+
+        if (!/^[0-9]*$/.test(accountValue)) {
+            flag1 = false;
+            if (accountError.innerText !== "")
+                accountError.innerText += "，";
+            accountError.innerText += "账号仅能包含数字";
+        }
+
+        if (flag1 && flag2) {
+            // 在恢复时将 disabled 属性设置为 false
+            loginButton.disabled = false;
+
+            // 移除 disabled 类名
+            loginButton.classList.remove("disabled");
+        }
+        return true;
+    }
+
+    // 判断表单合法性
+    function validatePassword() {
+        const passwordError = document.getElementById("password-error");
+        const passwordValue = passwordInput.value.trim(); // 获取输入框的值，并去除首尾空格
+
+        passwordError.innerText = ""; // 先清空错误提示
+        registerButton.disabled = true; // 先禁用提交按钮
+        registerButton.classList.add("disabled");
+        flag2 = true;
+
+        if (passwordValue.trim() === "") {
+            flag2 = false;
+            passwordError.innerText = "密码不能为空";
+            return false;
+        }
+        let num = 0;
+        if (/(?=.*\d)/.test(passwordValue))
+            num++;
+        if (/(?=.*[a-z])/.test(passwordValue) || /(?=.*[A-Z])/.test(passwordValue))
+            num++;
+        if (/(?=.*[!@#$%^&*.])/.test(passwordValue))
+            num++;
+
+        //用^和$包起来才是整个字符串完全匹配
+        if (!/^[a-zA-Z\d!@#$%^&*.]{8,20}$/.test(passwordValue) && num < 2) {
+            flag2 = false;
+            passwordError.innerText = "密码长度应为8-20个字符，且密码需同时包含字母、数字或特殊字符两种及以上";
+            return false;
+        }
+
+        if (!/^[a-zA-Z\d!@#$%^&*.]{8,20}$/.test(passwordValue)) {
+            flag2 = false;
+            passwordError.innerText += "密码长度应为8-20个字符";
+        }
+
+        // 检查密码是否包含字母、数字或特殊字符中的两种及以上
+        if (num < 2) {
+            flag2 = false;
+            if (passwordError.innerText !== "")
+                passwordError.innerText += "，";
+            passwordError.innerText += "密码需同时包含字母、数字或特殊字符两种及以上";
+        }
+
+        if (flag1 && flag2) {
+            // 在恢复时将 disabled 属性设置为 false
+            registerButton.disabled = false;
+
+            // 移除 disabled 类名
+            registerButton.classList.remove("disabled");
+        }
+        return true;
+    }
+
+    function validateIdnumber() {
+        const idnumberValue = idnumberInput.value;
+        const idnumberRegex = /^\d{18}$/;
+        if (!idnumberValue) {
+            idnumberError.textContent = "身份证号不能为空";
+        } else if (!idnumberRegex.test(idnumberValue)) {
+            idnumberError.textContent = "身份证号格式不正确";
+        } else {
+            idnumberError.textContent = "";
+        }
+    }
+
+    // 重置按钮逻辑
+    resetButton.addEventListener("click", function () {
+        accountInput.value = "";
+        passwordInput.value = "";
+        idnumberInput.value = "";
+        accountError.textContent = "";
+        passwordError.textContent = "";
+        idnumberError.textContent = "";
+    });
+
+    // 注册按钮逻辑
+    registerButton.addEventListener("click", function () {
+        const accountValue = accountInput.value;
+        const passwordValue = passwordInput.value;
+        const idnumberValue = idnumberInput.value;
+
+        // 简单验证
+        if (!accountValue || !passwordValue || !idnumberValue) {
+            Swal.fire({
+                icon: 'error',
+                title: '错误',
+                text: '请填写所有字段'
+            });
+            return;
+        }
+
+        const idnumberRegex = /^\d{18}$/;
+        if (!idnumberRegex.test(idnumberValue)) {
+            Swal.fire({
+                icon: 'error',
+                title: '错误',
+                text: '身份证号格式不正确'
+            });
+            return;
+        }
+
+        // 数据哈希处理
+        const hashedPassword = CryptoJS.SHA256(passwordValue).toString();
+
+        // 发送POST请求
+        fetch('/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                account: accountValue,
+                password: hashedPassword,
+                idnumber: idnumberValue
+            })
+        }).then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '注册成功',
+                        text: '您已成功注册'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '错误',
+                        text: data.message || '注册失败'
+                    });
+                }
+            }).catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: '错误',
+                text: '请求失败，请稍后重试'
+            });
+            console.error('Error:', error);
+        });
+    });
+
+    // 显示和隐藏密码
+    const showHideIcon = document.querySelector(".show-hide");
+    showHideIcon.addEventListener("click", function () {
+        const passwordFieldType = passwordInput.getAttribute("type");
+        if (passwordFieldType === "password") {
+            passwordInput.setAttribute("type", "text");
+            showHideIcon.setAttribute("name", "eye-off-outline");
+        } else {
+            passwordInput.setAttribute("type", "password");
+            showHideIcon.setAttribute("name", "eye-outline");
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>个人资料</title>
+    <style>
+        * {
+            font-family: "Poppins";
+        }
+
+        body {
+            user-select: none;
+            overflow-y: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #dde5f4;
+            height: 100vh;
+        }
+
+        .profile {
+            width: 500px;
+            height: 600px;
+            background: #f1f7fe;
+            padding: 2em;
+            display: flex;
+            flex-direction: column;
+            border-radius: 30px;
+            box-shadow: 0 0 2em #e6e9f9;
+            gap: 1em;
+        }
+
+        .profile .title {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1em;
+        }
+
+        .profile .info {
+            background: white;
+            box-shadow: 0 0 2em #e6e9f9;
+            padding: 1em;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5em;
+            border-radius: 20px;
+            color: #4d4d4d;
+        }
+
+        .profile .info div {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5em 0;
+        }
+
+        .profile .info div span {
+            font-weight: bold;
+        }
+
+        .profile .logout {
+            padding: 1em;
+            background: #3e4684;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+<div class="profile">
+    <div class="title">个人资料</div>
+    <div class="info">
+        <div>
+            <span>账号:</span>
+            <span id="account"></span>
+        </div>
+        <div>
+            <span>姓名:</span>
+            <span id="name"></span>
+        </div>
+        <div>
+            <span>邮箱:</span>
+            <span id="email"></span>
+        </div>
+        <div>
+            <span>电话:</span>
+            <span id="phone"></span>
+        </div>
+    </div>
+    <button class="logout" id="logout">退出登录</button>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        // 从 localStorage 中获取用户数据
+        const userData = JSON.parse(localStorage.getItem('userData'));
+
+        if (userData) {
+            document.getElementById('account').textContent = userData.account;
+            document.getElementById('name').textContent = userData.username;
+            document.getElementById('email').textContent = userData.email;
+            document.getElementById('phone').textContent = userData.phone;
+        }
+
+        // 处理退出登录
+        document.getElementById('logout').addEventListener('click', () => {
+            // 清除 localStorage 中的用户数据
+            localStorage.removeItem('userData');
+            // 跳转到登录页面
+            window.location.href = 'login.html';
+        });
+    });
+</script>
+</body>
+</html>
