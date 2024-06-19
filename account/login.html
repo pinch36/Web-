@@ -424,8 +424,11 @@
         });
     }
 
+    function hashPassword(password) {
+        return CryptoJS.SHA256(password).toString();
+    }
 
-    // 生成随机的盐值
+    /*// 生成随机的盐值
     function generateSalt(length) {
         const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let salt = '';
@@ -439,7 +442,7 @@
     function saltedHash(password, salt) {
         const saltedPassword = password + salt;
         return CryptoJS.SHA256(saltedPassword).toString();
-    }
+    }*/
 
     //提交表单
     function handleSubmit() {
@@ -467,21 +470,25 @@
             return;
         }
 
-        const salt = generateSalt(16); // 生成长度为16的随机盐值
-        const hashedPassword = saltedHash(password, salt);
+        // const salt = generateSalt(16); // 生成长度为16的随机盐值
+        // const hashedPassword = saltedHash(password, salt);
+        // const hashedPassword = hashPassword(password);
+        // console.log("原始密码:", password);
+        // console.log("盐值:", salt);
+        // console.log("加盐哈希后的密码:", hashedPassword);
+        const hashedPassword = hashPassword(password);
         console.log("原始密码:", password);
-        console.log("盐值:", salt);
-        console.log("加盐哈希后的密码:", hashedPassword);
+        console.log("哈希后的密码:", hashedPassword);
         // const decryptedPassword = CryptoJS.AES.decrypt(encryptedPassword, 'secretKey').toString(CryptoJS.enc.Utf8);
-        loginPost({account: account, password: hashedPassword}).then(receiveSuccess).catch(receiveError);
+        loginPost({account: account, hashed_password: hashedPassword}).then(receiveSuccess).catch(receiveError);
     }
 
     // POST请求
     function loginPost(params) {
         console.log("post传输账号", params.account);
-        console.log("post传输密码", params.password);
+        console.log("post传输密码", params.hashed_password);
         return new Promise((resolve, reject) => {
-            // 模拟网络请求
+            /*// 模拟网络请求
             setTimeout(() => {
                 // 随机返回成功或失败的结果
                 if (Math.random() > 0.5) {
@@ -489,18 +496,59 @@
                 } else {
                     reject({status: "error", message: "账号或密码错误，登录失败", code: 500});
                 }
-            }, 500);
+            }, 500);*/
+            fetch('http://localhost:8090/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(params)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code === 1) {
+                        // 存储数据到localStorage
+                        localStorage.setItem('userData', JSON.stringify(data.data));
+                        resolve({
+                            status: "success",
+                            message: data.msg,
+                            code: data.code,
+                            data: data.data
+                        });
+                    } else {
+                        reject({
+                            status: "error",
+                            message: data.msg,
+                            code: data.code
+                        });
+                    }
+                })
+                .catch(error => {
+                    reject({
+                        status: "error",
+                        message: "请求失败，服务器错误",
+                        code: 500,
+                        error: error
+                    });
+                });
         });
     }
 
     function receiveSuccess(response) {
+        console.log(response);
         if (Swal) {
             Swal.fire({
                 title: response.status,
                 text: response.message,
                 icon: response.status,
                 confirmButtonText: '确定'
-            })
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // 在点击确定后执行页面跳转
+                    //todo 跳转页面
+                    window.location.href = '../xxxx.html';
+                }
+            });
         }
     }
 
