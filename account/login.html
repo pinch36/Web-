@@ -276,7 +276,7 @@
     <button class="reset" id="reset">重置</button>
     <div class="footer">
         <span onclick="window.location.href='register.html'">注册</span>
-        <span>忘记密码?</span>
+        <span id="forget-password">忘记密码</span>
     </div>
 </div>
 
@@ -590,6 +590,86 @@
             showHide.name = "eye-outline";
         }
     });
+</script>
+<script>
+    document.getElementById("forget-password").addEventListener("click", handleForgetPassword);
+
+    function handleForgetPassword() {
+        Swal.fire({
+            title: '忘记密码',
+            html:
+
+                '<div class="sec-2">' +
+                '    <label style="font-weight: bold;">账 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;号：</label>' +
+                '    <input id="swal-account" class="swal-account" placeholder="请输入账号">' +
+                '</div>' +
+                '<div class="sec-2">' +
+                '    <label style="font-weight: bold;">姓 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;名：</label>' +
+                '    <input id="swal-name" class="swal-name" placeholder="请输入姓名">' +
+                '</div>' +
+                '<div class="sec-2">' +
+                '    <label style="font-weight: bold;">身份证号：</label>' +
+                '    <input id="swal-id" class="swal-id" placeholder="请输入身份证号">' +
+                '</div>',
+            focusConfirm: false,
+            confirmButtonText: '提交',
+            preConfirm: () => {
+                const account = document.getElementById('swal-account').value;
+                const name = document.getElementById('swal-name').value;
+                const id = document.getElementById('swal-id').value;
+
+                if (!account || !name || !id) {
+                    Swal.showValidationMessage('所有字段都是必填的');
+                    return;
+                }
+
+                return {account, name, id};
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // 构造要发送的数据
+                console.log(result)
+                const forgetData = {
+                    account: result.value.account,
+                    username: result.value.name,
+                    identity: result.value.id
+                };
+
+                fetch('http://localhost:8090/forget', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(forgetData)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.code === 1) {
+                            Swal.fire({
+                                title: '重置密码成功',
+                                text: data.msg,
+                                icon: 'success',
+                                confirmButtonText: '确定'
+                            });
+                        } else {
+                            Swal.fire({
+                                title: '信息错误',
+                                text: data.msg,
+                                icon: 'error',
+                                confirmButtonText: '确定'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            title: '请求失败',
+                            text: '服务器错误',
+                            icon: 'error'
+                        });
+                    });
+            }
+        });
+    }
 </script>
 </body>
 </html>
