@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>学生管理</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
+    <style>
+        /* 保留原有样式 */
+        * {
+            font-family: "Poppins", sans-serif;
+            /*box-sizing: border-box;*/
+        }
+
+        body {
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f1f7fe;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .screen-1 {
+            width: 80%;
+            /*max-width: 1000px;*/
+            background: #fff;
+            padding: 2em;
+            display: flex;
+            flex-direction: column;
+            border-radius: 20px;
+            box-shadow: 0 0 2em #e6e9f9;
+        }
+
+        .logo {
+            /*height: 150px;*/
+            margin-top: -3em;
+            align-self: center;
+        }
+
+        .table-container {
+            background: #f1f7fe;
+            box-shadow: 0 0 2em #e6e9f9;
+            padding: 1.5em;
+            border-radius: 20px;
+            color: #4d4d4d;
+            /*margin-top: 1em;*/
+            align-self: center; /* 居中！！！！ */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            margin: 0;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            width: 100px;
+        }
+
+        th {
+            background-color: #3e4684;
+            color: #fff;
+        }
+
+        button {
+            width: 150px;
+            padding: 0.7em 1.2em;
+            background: #3e4684;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0.2em;
+            transition: background 0.3s ease;
+        }
+
+        button.reset {
+            background: #A6B1E1;
+        }
+
+        button.enable {
+            background: #A6B1E1;
+        }
+
+        button.delete {
+            background: #ff4d4d;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px; /* 按钮之间的间距 */
+        }
+    </style>
+</head>
+<body>
+<div class="screen-1">
+    <svg class="logo" xmlns="http://www.w3.org/2000/svg" version="1.1" width="300" height="120"
+         viewbox="0 0 640 480" xml:space="preserve">
+    <g transform="matrix(3.31 0 0 3.31 320.4 240.4)">
+      <circle style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(61,71,133); fill-rule: nonzero; opacity: 1;"
+              cx="0" cy="0" r="40"></circle>
+    </g>
+        <g transform="matrix(0.98 0 0 0.98 268.7 213.7)">
+      <circle style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+              cx="0" cy="0" r="40"></circle>
+    </g>
+        <g transform="matrix(1.01 0 0 1.01 362.9 210.9)">
+      <circle style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+              cx="0" cy="0" r="40"></circle>
+    </g>
+        <g transform="matrix(0.92 0 0 0.92 318.5 286.5)">
+      <circle style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+              cx="0" cy="0" r="40"></circle>
+    </g>
+        <g transform="matrix(0.16 -0.12 0.49 0.66 290.57 243.57)">
+      <polygon
+              style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+              points="-50,-50 -50,50 50,50 50,-50 "></polygon>
+    </g>
+        <g transform="matrix(0.16 0.1 -0.44 0.69 342.03 248.34)">
+      <polygon
+              style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+              vector-effect="non-scaling-stroke" points="-50,-50 -50,50 50,50 50,-50 "></polygon>
+    </g>
+  </svg>
+    <div class="table-container">
+        <table>
+            <thead>
+            <tr>
+                <th>学号</th>
+                <th>姓名</th>
+                <th>身份证号</th>
+                <th>手机号码</th>
+                <th>邮箱</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody id="student-table-body">
+            <!-- 学生数据动态添加 -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchStudents();
+    });
+
+    function fetchStudents() {
+        fetch('http://localhost:8090/students')
+            .then(response => response.json())
+            .then(data => {
+                const studentTableBody = document.getElementById('student-table-body');
+                studentTableBody.innerHTML = ''; // 清空表格内容
+
+                data.data.forEach(student => {
+                    const row = document.createElement('tr');
+
+                    row.innerHTML = `
+                        <td>${student.account}</td>
+                        <td>${student.username}</td>
+                        <td>${student.identity}</td>
+                        <td>${student.phone}</td>
+                        <td>${student.email}</td>
+                        <td>
+                            <div class="button-container">
+                            <button class="reset" onclick="resetPassword('${student.account}')">重置密码</button>
+                            <!-- <button class="disable" onclick="disableStudent('${student.account}')">禁用</button>-->
+                            <button class="${student.status === 0 ? 'disable' : 'enable'}"
+                                onclick="toggleStudentStatus(this, '${student.account}', ${student.status})">
+                            <!-- ${student.status === 1 ? '禁用' : '启用'}-->
+                                ${'禁用'}
+                            </button>
+                            <button class="delete" onclick="deleteStudent('${student.account}')">删除</button>
+                            </div>
+                        </td>
+                    `;
+
+                    studentTableBody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('获取学生列表失败:', error);
+                // alert('获取学生列表失败');
+            });
+    }
+
+    function resetPassword(account) {
+        Swal.fire({
+            title: '确认重置该学生的密码吗？',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: '确认',
+            cancelButtonText: '取消'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // 发送重置密码请求
+                fetch(`http://localhost:8090/resetPassword/${account}`, {
+                    method: 'PUT'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.code === 1) {
+                            Swal.fire('成功', '密码已重置', 'success');
+                        } else {
+                            Swal.fire('错误', '重置密码失败', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('重置密码失败:', error);
+                        Swal.fire('错误', '重置密码失败', 'error');
+                    });
+            }
+        });
+    }
+
+    function toggleStudentStatus(button, account, status) {
+        const action = status === 1 ? '禁用' : '启用';
+        const apiUrl = status === 1 ? `http://localhost:8090/disable/${account}` : `http://localhost:8090/enable/${account}`;
+
+        Swal.fire({
+            title: `确认${action}该学生吗？`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: '确认',
+            cancelButtonText: '取消'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // 发送禁用/启用请求
+                fetch(apiUrl, {
+                    method: 'PUT'
+                })
+                    /*.then(response => response.json())
+                    .then(data => {
+                        if (data.code === 1) {
+                            Swal.fire('成功', '学生已禁用', 'success');
+                        } else {
+                            Swal.fire('错误', '禁用失败', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('禁用学生失败:', error);
+                        Swal.fire('错误', '禁用失败', 'error');
+                    });*/
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.code === 1) {
+                            Swal.fire('成功', `学生已${action}`, 'success').then(() => {
+                                // 更新按钮状态
+                                // 当该类存在时，toggle会将其移除；当该类不存在时，toggle会将其添加。
+                                button.classList.toggle('disable');
+                                button.classList.toggle('enable');
+                                status = status === 1 ? 0 : 1;
+                                // button.textContent = status === 0 ? '启用' : '禁用';
+                                button.textContent = '禁用';
+                                button.setAttribute('onclick', `toggleStudentStatus(this, '${account}', ${status})`);
+                            });
+                        } else {
+                            Swal.fire('错误', `${action}失败`, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`${action}学生失败:`, error);
+                        Swal.fire('错误', `${action}失败`, 'error');
+                    });
+            }
+        });
+    }
+
+    function deleteStudent(account) {
+        Swal.fire({
+            title: '确认删除该学生吗？',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: '确认',
+            cancelButtonText: '取消'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // 发送删除请求
+                fetch(`http://localhost:8090/delete/${account}`, {
+                    method: 'DELETE'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.code === 1) {
+                            Swal.fire('成功', '学生已删除', 'success').then(() => {
+                                fetchStudents(); // 重新获取学生列表
+                            });
+                        } else {
+                            Swal.fire('错误', '删除失败', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('删除学生失败:', error);
+                        Swal.fire('错误', '删除失败', 'error');
+                    });
+            }
+        });
+    }
+</script>
+</body>
+</html>
