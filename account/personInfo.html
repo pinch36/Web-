@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>个人资料</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         * {
             font-family: "Poppins";
@@ -43,7 +45,7 @@
             padding: 1em;
             display: flex;
             flex-direction: column;
-            gap: 0.5em;
+            /*gap: 0.5em;*/
             border-radius: 20px;
             color: #4d4d4d;
         }
@@ -58,7 +60,14 @@
             font-weight: bold;
         }
 
-        .profile .logout {
+        .profile .info div input {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 0.5em;
+            flex: 1;
+        }
+
+        .profile .logout, .profile .edit {
             padding: 1em;
             background: #3e4684;
             color: white;
@@ -68,6 +77,23 @@
             text-align: center;
             cursor: pointer;
             margin-top: auto;
+        }
+
+        .profile .edit {
+            margin-top: 1em;
+        }
+
+        .info input {
+            max-width: 15em;
+            text-align: right;
+        }
+
+        .result {
+            text-align: right;
+            font-size: xx-small;
+            float: right;
+            clear: right;
+            color: red;
         }
     </style>
 </head>
@@ -84,14 +110,23 @@
             <span id="name"></span>
         </div>
         <div>
-            <span>邮箱:</span>
-            <span id="email"></span>
+            <span>身份:</span>
+            <span id="role"></span>
         </div>
         <div>
-            <span>电话:</span>
-            <span id="phone"></span>
+            <span>邮箱:</span>
+            <input type="text" id="email">
         </div>
+        <!-- 提示信息 -->
+        <span class="result" id="email-error"></span>
+        <div>
+            <span>电话:</span>
+            <input type="text" id="phone">
+        </div>
+        <!-- 提示信息 -->
+        <span class="result" id="phone-error"></span>
     </div>
+    <button class="edit" id="edit">修改</button>
     <button class="logout" id="logout">退出登录</button>
 </div>
 
@@ -103,8 +138,9 @@
         if (userData) {
             document.getElementById('account').textContent = userData.account;
             document.getElementById('name').textContent = userData.username;
-            document.getElementById('email').textContent = userData.email;
-            document.getElementById('phone').textContent = userData.phone;
+            document.getElementById('email').value = userData.email;
+            document.getElementById('phone').value = userData.phone;
+            document.getElementById('role').textContent = userData.role;
         }
 
         // 处理退出登录
@@ -114,6 +150,78 @@
             // 跳转到登录页面
             window.location.href = 'login.html';
         });
+
+        // 处理修改数据
+        document.getElementById('edit').addEventListener('click', () => {
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            let emailError = document.getElementById('email-error');
+            let phoneError = document.getElementById('phone-error');
+
+            emailError.textContent = '';
+            phoneError.textContent = '';
+            // 数据校验
+            if (!validateEmail(email)) {
+                emailError.textContent = '无效的邮箱地址';
+                return;
+            }
+
+            if (!validatePhone(phone)) {
+                phoneError.textContent = '无效的电话号码';
+                return;
+            }
+
+            // 构造要发送的数据
+            const updatedData = {
+                account: userData.account,
+                email: email,
+                phone: phone
+            };
+
+            // 发送请求到后端
+            fetch('http://localhost:8090/updateInfo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code === 1) {
+                        if (Swal) {
+                            Swal.fire({
+                                title: "success",
+                                text: data.msg,
+                                icon: "success",
+                                confirmButtonText: '确定'
+                            })
+                        }
+                        // 更新 localStorage 中的用户数据
+                        userData.email = email;
+                        userData.phone = phone;
+                        localStorage.setItem('userData', JSON.stringify(userData));
+                    } else {
+                        alert('修改失败');
+                    }
+                })
+                .catch(error => {
+                    console.error('错误:', error);
+                    alert('修改失败');
+                });
+        });
+
+        // 邮箱校验函数
+        function validateEmail(email) {
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return regex.test(email);
+        }
+
+        // 电话校验函数
+        function validatePhone(phone) {
+            const regex = /^\d{10,11}$/;
+            return regex.test(phone);
+        }
     });
 </script>
 </body>
