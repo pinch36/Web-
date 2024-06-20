@@ -20,14 +20,14 @@
             overflow-y: auto; /* 允许垂直滚动 */
             display: flex;
             justify-content: center;
-            align-items: center;
+            /*align-items: center;!!!!*/
             background: #dde5f4;
             height: 100vh;
         }
 
         .screen-1 {
             width: 500px;
-            height: 1000px;
+            height: 1200px;
             background: #f1f7fe;
             padding: 2em;
             display: flex;
@@ -38,9 +38,10 @@
         }
 
         .screen-1 .logo {
-            height: 150px;
+            /*height: 150px;*/
             margin-top: -3em;
             margin-left: 5em;
+
         }
 
         .screen-1 .input-group {
@@ -107,11 +108,18 @@
             /*margin: 2em;*/
             margin-top: 2em;
         }
+
+        .title {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1em;
+        }
     </style>
 </head>
 <body>
 <div class="screen-1">
-    <svg class="logo" xmlns="http://www.w3.org/2000/svg" version="1.1" width="300" height="300"
+    <svg class="logo" xmlns="http://www.w3.org/2000/svg" version="1.1" width="300" height="120"
          viewbox="0 0 640 480" xml:space="preserve">
     <g transform="matrix(3.31 0 0 3.31 320.4 240.4)">
       <circle style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(61,71,133); fill-rule: nonzero; opacity: 1;"
@@ -140,6 +148,7 @@
               vector-effect="non-scaling-stroke" points="-50,-50 -50,50 50,50 50,-50 "></polygon>
     </g>
   </svg>
+    <div class="title">学生注册</div>
     <div class="input-group account">
         <label for="account" style="font-weight: bold;">学 号</label>
         <div class="sec-2">
