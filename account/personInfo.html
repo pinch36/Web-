@@ -22,7 +22,7 @@
 
         .profile {
             width: 500px;
-            height: 600px;
+            height: 700px;
             background: #f1f7fe;
             padding: 2em;
             display: flex;
@@ -67,7 +67,7 @@
             flex: 1;
         }
 
-        .profile .logout, .profile .edit {
+        .profile .logout, .profile .edit, .profile .manage {
             padding: 1em;
             background: #3e4684;
             color: white;
@@ -126,7 +126,8 @@
         <!-- 提示信息 -->
         <span class="result" id="phone-error"></span>
     </div>
-    <button class="edit" id="edit">修改</button>
+    <button class="edit" id="edit">修改资料</button>
+    <button class="manage" id="manage" style="display: none;">学生管理</button>
     <button class="logout" id="logout">退出登录</button>
 </div>
 
@@ -141,6 +142,11 @@
             document.getElementById('email').value = userData.email;
             document.getElementById('phone').value = userData.phone;
             document.getElementById('role').textContent = userData.role;
+
+            // 如果用户是老师，显示学生管理按钮
+            if (userData.role === '老师') {
+                document.getElementById('manage').style.display = 'block';
+            }
         }
 
         // 处理退出登录
@@ -222,6 +228,12 @@
             const regex = /^\d{10,11}$/;
             return regex.test(phone);
         }
+    });
+</script>
+<script>
+    // 学生管理按钮点击事件
+    document.getElementById('manage').addEventListener('click', () => {
+        window.location.href = 'manage.html';
     });
 </script>
 </body>
