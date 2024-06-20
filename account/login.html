@@ -300,7 +300,7 @@
         const accountValue = accountInput.value.trim(); // 获取输入框的值，并去除首尾空格
 
         accountError.innerText = ""; // 先清空错误提示
-        loginButton.disabled = true; // 先禁用提交按钮
+        // loginButton.disabled = true; // 先禁用提交按钮
         loginButton.classList.add("disabled");
         flag1 = true;
 
@@ -324,13 +324,13 @@
             accountError.innerText += "账号仅能包含数字";
         }
 
-        if (flag1 && flag2) {
+        /*if (flag1 && flag2) {
             // 在恢复时将 disabled 属性设置为 false
             loginButton.disabled = false;
 
             // 移除 disabled 类名
             loginButton.classList.remove("disabled");
-        }
+        }*/
         return true;
     }
 
@@ -340,7 +340,7 @@
         const passwordValue = passwordInput.value.trim(); // 获取输入框的值，并去除首尾空格
 
         passwordError.innerText = ""; // 先清空错误提示
-        loginButton.disabled = true; // 先禁用提交按钮
+        // loginButton.disabled = true; // 先禁用提交按钮
         loginButton.classList.add("disabled");
         flag2 = true;
 
@@ -377,13 +377,13 @@
             passwordError.innerText += "密码需同时包含字母、数字或特殊字符两种及以上";
         }
 
-        if (flag1 && flag2) {
+        /*if (flag1 && flag2) {
             // 在恢复时将 disabled 属性设置为 false
             loginButton.disabled = false;
 
             // 移除 disabled 类名
             loginButton.classList.remove("disabled");
-        }
+        }*/
         return true;
     }
 </script>
@@ -449,6 +449,12 @@
 
     //提交表单
     function handleSubmit() {
+        validateAccount();
+        validatePassword();
+        if (!flag1 || !flag2) {
+            return;
+        }
+
         let account = document.getElementById('account').value;
         let password = document.getElementById('password').value;
         let remember = document.getElementById('remember').checked;
@@ -466,13 +472,7 @@
             localStorage.setItem('remember', false);
             localStorage.removeItem('expirationTime');
         }
-
-        validateAccount();
-        validatePassword();
-        if (!flag1 || !flag2) {
-            return;
-        }
-
+        
         // const salt = generateSalt(16); // 生成长度为16的随机盐值
         // const hashedPassword = saltedHash(password, salt);
         // const hashedPassword = hashPassword(password);
