@@ -275,7 +275,7 @@
     <button class="login" id="login">登录</button>
     <button class="reset" id="reset">重置</button>
     <div class="footer">
-        <span>注册</span>
+        <span onclick="window.location.href='register.html'">注册</span>
         <span>忘记密码?</span>
     </div>
 </div>
@@ -510,7 +510,6 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.code === 1) {
-                        // 存储数据到localStorage
                         if (data.data.status === 0) {
                             reject({
                                 status: "error",
@@ -549,15 +548,15 @@
         console.log(response);
         if (Swal) {
             Swal.fire({
-                title: response.status,
-                text: response.message,
+                title: response.message,
+                // text: response.message,
                 icon: response.status,
                 confirmButtonText: '确定'
             }).then((result) => {
                 if (result.isConfirmed) {
                     // 在点击确定后执行页面跳转
                     //todo 跳转页面
-                    window.location.href = '../personInfo.html';
+                    window.location.href = './personInfo.html';
                 }
             });
         }
@@ -566,7 +565,7 @@
     function receiveError(response) {
         if (Swal) {
             Swal.fire({
-                title: "账号或密码错误！",
+                title: response.message,
                 // text: response.status,
                 icon: response.status,
                 confirmButtonText: '确定'
