@@ -269,13 +269,20 @@
                                     window.location.href = 'login.html';
                                 }
                             });
-                        } else {
-                            alert('修改失败');
+                        }
+                    } else {
+                        if (Swal) {
+                            Swal.fire({
+                                title: "error",
+                                text: data.msg,
+                                icon: "error",
+                                confirmButtonText: '确定'
+                            });
                         }
                     }
                 }).catch(error => {
                 console.error('错误:', error);
-                alert('修改失败');
+                alert('注册失败');
             });
         }
     }
