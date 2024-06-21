@@ -236,7 +236,7 @@
     });
 
     function registerPost() {
-        if (registerAllow()) {
+        if (!registerAllow()) {
             if (Swal) {
                 Swal.fire({
                     title: "未开放注册功能！",
