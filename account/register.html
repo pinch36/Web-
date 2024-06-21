@@ -235,8 +235,10 @@
         }
     });
 
-    function registerPost() {
-        if (!registerAllow()) {
+    async function registerPost() {
+        const allow = await registerAllow();
+        console.log('注册允许状态:', allow);
+        if (!allow) {
             if (Swal) {
                 Swal.fire({
                     title: "未开放注册功能！",
@@ -312,22 +314,20 @@
         }
     }
 
-    function registerAllow() {
-        fetch('http://localhost:8090/getRegisterAllow')
-            .then(response => response.json())
-            .then(data => {
-                    if (data.code === 1) {
-                        if (data.data === 0) {
-                            return false;
-                        }
-                    }
-                }
-            )
-            .catch(error => {
-                console.error('获取学生自主注册功能状态失败:', error);
-            });
-        return true;
+    async function registerAllow() {
+        let allow = true;
+        try {
+            const response = await fetch('http://localhost:8090/getRegisterAllow');
+            const data = await response.json();
+            if (data.code === 1 && data.data === 0) {
+                allow = false;
+            }
+        } catch (error) {
+            console.error('获取学生自主注册功能状态失败:', error);
+        }
+        return allow;
     }
+
 
     function validateForm() {
         // 清空之前的错误信息
