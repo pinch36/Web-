@@ -169,6 +169,14 @@
                 // 将按钮添加
                 // div.appendChild(button);
             }
+        } else {
+            Swal.fire({
+                icon: 'error',
+                text: '请先登录！',
+                confirmButtonText: '确定'
+            }).then(() => {
+                window.location.href = 'login.html';
+            });
         }
 
         // 处理退出登录
