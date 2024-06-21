@@ -211,6 +211,18 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        const userData = JSON.parse(localStorage.getItem('userData'));
+        if (!userData || userData.role !== '老师') {
+            Swal.fire({
+                icon: 'error',
+                text: '无权限！',
+                confirmButtonText: '确定'
+            }).then(() => {
+                window.location.href = 'personInfo.html';
+            });
+            return;
+        }
+
         let registerAllowButton = document.getElementById('registerAllowButton');
         fetch('http://localhost:8090/getRegisterAllow')
             .then(response => response.json())
