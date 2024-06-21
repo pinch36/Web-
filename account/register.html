@@ -236,6 +236,22 @@
     });
 
     function registerPost() {
+        if (registerAllow()) {
+            if (Swal) {
+                Swal.fire({
+                    title: "未开放注册功能！",
+                    icon: "error",
+                    confirmButtonText: '确定'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // 在点击确定后执行页面跳转
+                        window.location.href = 'login.html';
+                    }
+                });
+            }
+            return;
+        }
+
         // 获取输入值
         const account = accountInput.value.trim();
         const password = passwordInput.value.trim();
@@ -294,6 +310,23 @@
                 alert('注册失败');
             });
         }
+    }
+
+    function registerAllow() {
+        fetch('http://localhost:8090/getRegisterAllow')
+            .then(response => response.json())
+            .then(data => {
+                    if (data.code === 1) {
+                        if (data.data === 0) {
+                            return false;
+                        }
+                    }
+                }
+            )
+            .catch(error => {
+                console.error('获取学生自主注册功能状态失败:', error);
+            });
+        return true;
     }
 
     function validateForm() {
