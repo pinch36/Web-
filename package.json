@@ -8,7 +8,8 @@
   },
   "scripts": {
     "welcome": "parcel account\\login.html --open --port 80",
-    "account": "parcel account\\login.html --open --port 80"
+    "account": "parcel account\\login.html --open --port 80",
+    "welcomePage": "parcel welcomepage\\welcomepage.html --open --port 90"
   },
   "devDependencies": {
     "nodemon": "^3.1.0",

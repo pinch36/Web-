@@ -10,8 +10,13 @@
   <!-- import JavaScript -->
   <script src="https://unpkg.com/element-ui/lib/index.js"></script>
   <style>
+    body{
+      background-color: #dde5f4;
+    }
+    * {
+      font-family: "Poppins";
+    }
     .el-header {
-      background-color: #f4f4f4;
       color: #333;
       text-align: center;
       line-height: 60px;
@@ -21,8 +26,7 @@
     }
 
     .el-footer {
-      background-color: #f4f4f4;
-      /* E1F3D8 */
+      background-color: #dde5f4;
       color: #333;
       position: fixed;
       line-height: 60px;
@@ -33,14 +37,14 @@
     }
 
     .el-aside {
-      background-color: #dcd0c0;
+      background-color: #f1f7fe;
       color: #333;
       text-align: center;
       line-height: 90px;
     }
 
     .el-main {
-      background-color: #dcd0c0;
+      background-color: #f1f7fe;
       color: #333;
       text-align: center;
       line-height: 60px;
@@ -141,7 +145,7 @@
               </el-table>
             </div>
           </el-main>
-          <el-footer>就这个旋律心不心跳</el-footer>
+          <el-footer>福鼎肉片出品精品</el-footer>
         </el-container>
       </el-container>
     </el-container>
@@ -245,10 +249,8 @@
           status: 0
         };
         axios.post('http://localhost:8090/notice', noticeData, {
-          // 这里可以添加请求头，如果需要的话  
           headers: {
             'Content-Type': 'application/json',
-            // 其他可能的请求头...  
           }
         }).then(
           response => {
@@ -266,10 +268,8 @@
           status: 1
         };
         axios.post('http://localhost:8090/notice', noticeData, {
-          // 这里可以添加请求头，如果需要的话  
           headers: {
             'Content-Type': 'application/json',
-            // 其他可能的请求头...  
           }
         }).then(
           response => {
