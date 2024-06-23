@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>教师实验批改系统</title>
+    <style>
+        * {
+            font-family: "Poppins", Arial, sans-serif;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #dde5f4;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            padding: 30px;
+            background-color: #f1f7fe;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            overflow-y: auto;
+        }
+
+        header {
+            background-color: #3e4684;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            width: 100%;
+            /* 设置宽度为100% */
+            position: fixed;
+            /* 固定在页面顶部 */
+            display: flex;
+            justify-content: space-between;
+            top: 0;
+            /* 顶部对齐 */
+            left: 0;
+            /* 左侧对齐 */
+            z-index: 1000;
+            /* 保证在最前面 */
+            border-radius: 5px;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        h2 {
+            background-color: #dde5f4;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .experiment-record {
+            background: white;
+            padding: 5px;
+            margin-bottom: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: small;
+            position: relative;
+        }
+
+        .status-icon {
+            position: absolute; /* 绝对定位 */
+            right: -30px; /* 向右移动 */
+            top: 50%; /* 垂直居中 */
+            transform: translateY(-50%); /* 修正垂直居中 */
+            color: green;
+            font-size: 30px;
+        }
+
+        .experiment-record div {}
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .actions button {
+            padding: 10px;
+            background-color: #3e4684;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: background-color 0.3s ease;
+        }
+
+        .actions button:hover {
+            background-color: #2d3661;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+            margin-top: 10px;
+        }
+
+        .search-container input[type="text"] {
+            padding: 10px;
+            width: 200px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .search-container button {
+            padding: 10px;
+            background-color: #3e4684;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+        
+        .search-container button:hover {
+            background-color: #2d3661;
+        }
+
+        .generateGrades button {
+            padding: 10px;
+            background-color: #3e4684;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        footer {
+            background-color: #3e4684;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: lighter;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            /* 设置宽度为100% */
+            position: fixed;
+            /* 固定在页面底部 */
+            bottom: 0;
+            /* 底部对齐 */
+            left: 0;
+            /* 左侧对齐 */
+            z-index: 1000;
+            /* 保证在最前面 */
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" class="container">
+        <header>
+            <div>教师实验批改系统</di>
+        </header>
+        <main>
+            <h2>学生实验提交情况</h2>
+
+            <div class="action-bar">
+                <div class="generateGrades">
+                    <button @click="exportGrades">导出成绩</button>
+                </div>
+                <div class="search-container">
+                    <input type="text" v-model="searchQuery" placeholder="输入实验名称或学生ID搜索...">
+                    <button @click="filterExperiments">搜索</button>
+                </div>
+            </div>
+
+
+            <div id="experiment-records">
+                <div v-for="record in records" :key="record.id" class="experiment-record">
+                    <div>
+                        <div style="font-weight: bold;">学生账号:</div>
+                        <div style="font-weight:lighter">{{ record.studentAccount }}</div>
+                    </div>
+                    <div>
+                        <div style="font-weight: bold;">实验标题:</div>
+                        <div style="font-weight:lighter">{{ record.experimentTitle }}</div>
+                    </div>
+                    <div>
+                        <div style="font-weight: bold;">提交时间:</div>
+                        <div style="font-weight:lighter">{{ record.submissionTime }}</div>
+                    </div>
+                    <div class="actions">
+                        <button @click="jumpInterface(record)">查看详情</button>
+                        <button @click="evaluateCode(record)" style="background-color:#A6B1E1 ;">批改作业</button>
+                        <ion-icon v-if="record.status === 2" name="checkmark-circle-outline"
+                            class="status-icon"></ion-icon>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- <footer>
+            <div>版权所有：web小组</div>
+            <div>联系电话：17764979389</div>
+        </footer> -->
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                currentTab: 'submit',
+                selectedExperiment: '',
+                experimentContent: '这里是实验内容。',
+                experimentRemarks: '这里是备注内容。',
+                pendingExperiments: [],
+                submittedExperiments: [],
+                searchQuery: '', // 添加搜索查询数据
+                records: [ // 添加实验记录
+                    {
+                        id: 1,
+                        studentAccount: 'student1',
+                        experimentTitle: '实验1',
+                        submissionTime: '2024-06-21',
+                        experimentContent: '实验内容1',
+                    },
+                    {
+                        id: 2,
+                        studentAccount: 'student2',
+                        experimentTitle: '实验2',
+                        submissionTime: '2024-06-20',
+                        experimentContent: '实验内容2',
+                    },
+                    // 
+                    {
+                        id: 2,
+                        studentAccount: 'student2',
+                        experimentTitle: '实验2',
+                        submissionTime: '2024-06-20',
+                        status: 2,
+                        experimentContent: '实验内容2',
+                    },
+                    {
+                        id: 2,
+                        studentAccount: 'student2',
+                        experimentTitle: '实验2',
+                        submissionTime: '2024-06-20',
+                        experimentContent: '实验内容2',
+                    },
+                    {
+                        id: 2,
+                        studentAccount: 'student2',
+                        experimentTitle: '实验2',
+                        submissionTime: '2024-06-20',
+                        experimentContent: '实验内容2',
+                        codeReview: '很好'
+                    }
+                ]
+            },
+            methods: {
+                jumpInterface(record) {
+                    const url = `ViewDetails.html?record=${encodeURIComponent(JSON.stringify(record))}`;
+                    window.location.href = url;
+                },
+
+                filterExperiments() {
+                    const query = this.searchQuery.toLowerCase();
+                    this.records = this.records.filter(record => {
+                        return record.experimentTitle.toLowerCase().includes(query) ||
+                            record.studentAccount.toLowerCase().includes(query);
+                    });
+                },
+
+                //导出成绩
+                exportGrades() {
+                    this.evaluateAllExperiments().then(() => {
+                        const ws_data = [
+                            ["学生账号", "实验标题", "提交时间", "代码评价", "评分"]
+                        ];
+
+                        this.records.forEach(record => {
+                            ws_data.push([record.studentAccount, record.experimentTitle, record
+                                .submissionTime, record.codeReview, record.score
+                            ]);
+                        });
+
+                        const wb = XLSX.utils.book_new();
+                        const ws = XLSX.utils.aoa_to_sheet(ws_data);
+                        XLSX.utils.book_append_sheet(wb, ws, "成绩");
+                        XLSX.writeFile(wb, "实验成绩.xlsx");
+                    }).catch(error => {
+                        console.error('批改实验时发生错误:', error);
+                        alert('批改实验时发生错误。');
+                    });
+
+                },
+                viewDetails(record) {
+                    alert(`查看详情: ${record.experimentTitle}`);
+                },
+
+
+
+                evaluateCode(record) {
+                    this.$set(record, 'status', 2);
+
+                    //gpt4评测
+                    const prompt =
+                        `Analyze the following code submitted by a student for the experiment titled "${record.experimentTitle}":\n\n${record.experimentContent}`;
+
+                    axios.post('https://api.openai.com/v1/engines/davinci-codex/completions', {
+                        prompt: prompt,
+                        max_tokens: 500,
+                        temperature: 0.5
+                    }, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer YOUR_OPENAI_API_KEY`
+                        }
+                    }).then(response => {
+                        alert(`分析结果: ${response.data.choices[0].text}`);
+                        record.codeReview = response.data.choices[0].text
+                    }).catch(error => {
+                        console.error(error);
+                        alert('分析代码时发生错误。');
+                    });
+
+
+
+                    //智能批改
+                    axios.post('/api/evaluate-code', {
+                            code: record.experimentContent
+                        })
+                        .then(response => {
+                            alert(`评测结果: ${response.data.result}`);
+                            record.goal = response.data.result
+                        })
+                        .catch(error => {
+                            console.error(error);
+                            alert('评测代码时发生错误。');
+                        });
+
+                    record.status = 2;
+
+                },
+
+                evaluateAllExperiments() {
+                    const evaluationPromises = this.records.map(record => {
+                        return this.evaluateCode(record);
+                    });
+
+                    return Promise.all(evaluationPromises);
+                },
+
+
+            }
+        });
+
+        //禁止缩放
+        window.addEventListener('wheel', function (e) {
+            if (e.ctrlKey) {
+                e.preventDefault();
+            }
+        }, {
+            passive: false
+        });
+    </script>
+</body>
+
+</html>
