@@ -175,7 +175,7 @@
                 input: '',
                 unReadData: [],
                 readData: [],
-                isLogin: true,
+                isLogin: false,
                 user: {
                     username: "曹弘文",
                     role: "student"
@@ -245,7 +245,7 @@
                 // alert('跳转到登录页面');
             },
             personalSpace() {
-                window.location.href = '../account/manage.html';
+                window.location.href = '../account/personInfo.html';
                 // alert('跳转到个人空间');
             },
             getTests() {
@@ -301,20 +301,22 @@
 
 
         },
-
-        async created() {
-            this.getTests();
-            this.getNoticeRead();
-            this.getNoticeUnRead();
+        async beforeMount() {
             this.userData = JSON.parse(localStorage.getItem('userData'));
             if (this.userData == null) {
-                isLogin = false;
+                this.isLogin = false;
             } else {
-                isLogin = true;
+                this.isLogin = true;
                 this.user.username = this.userData.name;
                 this.user.role = this.userData.role;
             }
         },
+        async created() {
+            this.getTests();
+            this.getNoticeRead();
+            this.getNoticeUnRead();
+        },
+
     })
 </script>
 
