@@ -1,931 +1,971 @@
-    <!DOCTYPE html>
-    <html lang="zh-CN">
+<!DOCTYPE html>
+<html lang="zh-CN">
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>实验提交系统</title>
-        <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/codemirror.min.css">
-        <link rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/theme/material-darker.min.css">
-        <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
-        <style>
-            * {
-                font-family: "Poppins", Arial, sans-serif;
-                box-sizing: border-box;
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实验提交系统</title>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/codemirror.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/theme/material-darker.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <style>
+        * {
+            font-family: "Poppins", Arial, sans-serif;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #dde5f4;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .sidebar {
+            height: 400px;
+            width: 200px;
+            background-color: #3e4684;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-right: 20px;
+            position: fixed;
+            top: 20%;
+            /* 适当调整这个值 */
+            left: 3px;
+            /* 适当调整这个值 */
+            transition: 0.3s ease;
+            transform: translateX(-99%);
+        }
+
+        .sidebar button {
+            padding: 15px 20px;
+            border: none;
+            background-color: transparent;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px 0;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .sidebar button:hover {
+            background-color: #dde5f4;
+            transform: translateX(5px);
+        }
+
+        .sidebar button.active {
+            background-color: #dde5f4;
+        }
+
+
+        .sidebar:hover {
+            height: 400px;
+            transform: translateX(0);
+            background-color: #f1f7fe;
+            /* 悬停时显示 */
+        }
+
+        .sidebar .logo {
+            margin-top: -3em;
+            margin-left: 7em;
+            width: 150px;
+            /* 设置新的宽度 */
+            height: 150px;
+            /* 设置新的高度 */
+
+        }
+
+        header {
+            background-color: #3e4684;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            width: 100%;
+            /* 设置宽度为100% */
+            position: fixed;
+            /* 固定在页面顶部 */
+            display: flex;
+            justify-content: space-between;
+            top: 0;
+            /* 顶部对齐 */
+            left: 0;
+            /* 左侧对齐 */
+            z-index: 1000;
+            /* 保证在最前面 */
+            border-radius: 5px;
+        }
+
+        footer {
+            background-color: #ffffff;
+            color: rgb(0, 0, 0);
+            padding: 10px;
+            text-align: center;
+            font-weight: lighter;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            /* 设置宽度为100% */
+            position: fixed;
+            /* 固定在页面底部 */
+            bottom: 0;
+            /* 底部对齐 */
+            left: 0;
+            /* 左侧对齐 */
+            z-index: 1000;
+            /* 保证在最前面 */
+            font-size: x-small;
+            height: 40px;
+        }
+
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            padding: 30px;
+            background-color: #f1f7fe;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+
+        header h1 {
+            margin: 0;
+        }
+
+        h2 {
+            background-color: #dde5f4;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+            background: white;
+            padding: 1em;
+            box-shadow: 0 0 2em #e6e9f9;
+            border-radius: 20px;
+            color: #4d4d4d;
+            margin-top: 1em;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="file"],
+        select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: calc(100% - 22px);
+            margin: 5px 0;
+        }
+
+        .media-preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .media-preview-container img,
+        .media-preview-container video {
+            max-width: calc(25% - 10px);
+            margin: 5px;
+            cursor: grab;
+        }
+
+        .media-preview-container img.dragging,
+        .media-preview-container video.dragging {
+            opacity: 0.5;
+        }
+
+        .preview-section {
+            background-color: #e6e6fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .button {
+            padding: 10px;
+            background-color: #A6B1E1;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .button:hover {
+            background-color: #2d3661;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .expContent {
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+            background: white;
+            padding: 1em;
+            box-shadow: 0 0 2em #e6e9f9;
+            border-radius: 20px;
+            color: #4d4d4d;
+            margin-top: 1em;
+            font-weight: bold;
+
+            div {
+                margin-bottom: 10px;
             }
+        }
 
-            body {
-                font-family: Arial, sans-serif;
-                background-color: #dde5f4;
-                display: flex;
-                justify-content: center;
-                align-items: flex-start;
-                height: 100vh;
-                margin: 0;
-            }
+        .experimentTitle {
+            height: 50px;
 
-            .sidebar {
-                height: 400px;
-                width: 200px;
-                background-color: #3e4684;
-                color: white;
-                display: flex;
-                flex-direction: column;
-                padding: 10px;
-                border-radius: 8px;
-                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                margin-right: 20px;
-                position: fixed;
-                top: 20%;
-                /* 适当调整这个值 */
-                left: 3px;
-                /* 适当调整这个值 */
-                transition: 0.3s ease;
-                transform: translateX(-99%);
-            }
-
-            .sidebar button {
-                padding: 15px 20px;
-                border: none;
-                background-color: transparent;
-                text-align: left;
-                cursor: pointer;
-                border-radius: 5px;
-                margin: 5px 0;
-                transition: background-color 0.3s, transform 0.3s;
-            }
-
-            .sidebar button:hover {
-                background-color: #dde5f4;
-                transform: translateX(5px);
-            }
-
-            .sidebar button.active {
-                background-color: #dde5f4;
-            }
-
-
-            .sidebar:hover {
-                height: 400px;
-                transform: translateX(0);
-                background-color: #f1f7fe;
-                /* 悬停时显示 */
-            }
-
-            .sidebar .logo {
-                margin-top: -3em;
-                margin-left: 7em;
-                width: 150px;
-                /* 设置新的宽度 */
-                height: 150px;
-                /* 设置新的高度 */
-
-            }
-
-            header {
-                background-color: #3e4684;
-                color: white;
-                padding: 10px;
-                text-align: center;
-                width: 100%;
-                /* 设置宽度为100% */
-                position: fixed;
-                /* 固定在页面顶部 */
-                display: flex;
-                justify-content: space-between;
-                top: 0;
-                /* 顶部对齐 */
-                left: 0;
-                /* 左侧对齐 */
-                z-index: 1000;
-                /* 保证在最前面 */
-                border-radius: 5px;
-            }
-
-            footer {
-                background-color: #ffffff;
-                color: rgb(0, 0, 0);
-                padding: 10px;
-                text-align: center;
-                font-weight: lighter;
-                width: 100%;
-                display: flex;
-                justify-content: space-around;
-                /* 设置宽度为100% */
-                position: fixed;
-                /* 固定在页面底部 */
-                bottom: 0;
-                /* 底部对齐 */
-                left: 0;
-                /* 左侧对齐 */
-                z-index: 1000;
-                /* 保证在最前面 */
-                font-size: x-small;
-                height: 40px;
-            }
-
-
-
-
-            .container {
-                max-width: 800px;
-                width: 100%;
-                padding: 30px;
-                background-color: #f1f7fe;
-                border-radius: 8px;
-                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            }
-
-
-
-            header h1 {
-                margin: 0;
-            }
-
-            h2 {
-                background-color: #dde5f4;
-                padding: 10px;
-                border-radius: 8px;
-                text-align: center;
-            }
-
-            .tab-content {
-                display: none;
-            }
-
-            .tab-content.active {
-                display: block;
-            }
-
-            form {
-                display: flex;
-                flex-direction: column;
-                gap: 1em;
-                background: white;
-                padding: 1em;
-                box-shadow: 0 0 2em #e6e9f9;
-                border-radius: 20px;
-                color: #4d4d4d;
-                margin-top: 1em;
-            }
-
-            label {
-                font-weight: bold;
-            }
-
-            input[type="text"],
-            input[type="file"],
-            select {
-                padding: 10px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                width: calc(100% - 22px);
-                margin: 5px 0;
-            }
-
-            .media-preview-container {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-
-            .media-preview-container img,
-            .media-preview-container video {
-                max-width: calc(25% - 10px);
-                margin: 5px;
-                cursor: grab;
-            }
-
-            .media-preview-container img.dragging,
-            .media-preview-container video.dragging {
-                opacity: 0.5;
-            }
-
-            .preview-section {
-                background-color: #e6e6fa;
-                padding: 20px;
-                border-radius: 8px;
-                margin-top: 20px;
-            }
-
-            .button {
-                padding: 10px;
-                background-color: #A6B1E1;
-                color: white;
-                border: none;
-                cursor: pointer;
-                border-radius: 30px;
-                transition: background-color 0.3s ease;
-                margin-top: 10px;
-            }
-
-            .button:hover {
-                background-color: #2d3661;
-            }
-
-            .hidden {
-                display: none;
-            }
-
-            .expContent {
-                display: flex;
-                flex-direction: column;
-                gap: 1em;
-                background: white;
-                padding: 1em;
-                box-shadow: 0 0 2em #e6e9f9;
-                border-radius: 20px;
-                color: #4d4d4d;
-                margin-top: 1em;
-                font-weight: bold;
-
-                div {
-                    margin-bottom: 10px;
-                }
-            }
-
-            .experimentTitle {
-                height: 50px;
-
-                div {
-                    font-size: small;
-                    padding: 10px;
-                    font-weight: lighter;
-                }
-            }
-
-            .experimentExtent {
-                height: 100px;
-
-                div {
-                    font-size: small;
-                    padding: 10px;
-                    font-weight: lighter;
-                }
-            }
-
-            .experimentRemarks {
-                height: 40px;
-
-                div {
-                    font-size: small;
-                    padding: 10px;
-                    font-weight: lighter;
-                }
-            }
-
-            .experimentalSelection {
-                display: flex;
-            }
-
-            .experimentalSelection .dropdown {
-                height: 40px;
-                /* Adjust height as needed */
-                padding: 5px;
-                margin: auto;
-                margin-right: 10px;
-                border: none;
-                /* Remove border */
-                border-radius: 4px;
-                background-color: #fff;
-                /* Same background as the body to blend in */
-                -webkit-appearance: none;
-                /* Remove default dropdown arrow in some browsers */
-                -moz-appearance: none;
-                /* Remove default dropdown arrow in some browsers */
-                appearance: none;
-                /* Remove default dropdown arrow */
-                background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="#000" d="M2 0L0 2h4z"/></svg>');
-                /* Custom dropdown arrow */
-                background-repeat: no-repeat;
-                background-position: right 10px top 50%;
-                background-size: 10px 10px;
-                text-align: center;
-            }
-
-            .experimentalSelection .submit-button {
-                width: 100px;
-                padding: 10px;
-                background-color: #A6B1E1;
-                color: white;
-                border: none;
-                cursor: pointer;
-                border-radius: 10px;
-                transition: background-color 0.3s ease;
-                margin-top: 0px;
-            }
-
-            .experimentalSelection .submit-button:hover {
-                background-color: #2d3661;
-            }
-
-            .experimentalSelection .submit-button.disabled {
-                background-color: #d3d3d3;
-                cursor: not-allowed;
-            }
-
-            .experimentalSelection .submit-button.disabled:hover {
-                background-color: #d3d3d3;
-            }
-
-            .CodeMirror {
-                border: 1px solid #ccc;
-                height: 400px;
-            }
-
-
-            .experiment-record {
-                background: white;
-                padding: 5px;
-                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                border-radius: 10px;
-                margin-bottom: 20px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
+            div {
                 font-size: small;
-            }
-
-            .actions button {
                 padding: 10px;
-                background-color: #3e4684;
-                color: white;
-                border: none;
-                cursor: pointer;
-                border-radius: 30px;
-                transition: background-color 0.3s ease;
+                font-weight: lighter;
             }
+        }
 
-            .actions button:hover {
-                background-color: #2d3661;
+        .experimentExtent {
+            height: 100px;
+
+            div {
+                font-size: small;
+                padding: 10px;
+                font-weight: lighter;
             }
+        }
 
-            .fontAndEffects {
-                font-weight: bold;
+        .experimentRemarks {
+            height: 40px;
+
+            div {
+                font-size: small;
+                padding: 10px;
+                font-weight: lighter;
             }
-        </style>
-    </head>
+        }
 
-    <body>
+        .experimentalSelection {
+            display: flex;
+        }
 
-        
-        <header>
-            <div>实验提交系统</div>
-            <div>当前账号</div>
-        </header>
+        .experimentalSelection .dropdown {
+            height: 40px;
+            /* Adjust height as needed */
+            padding: 5px;
+            margin: auto;
+            margin-right: 10px;
+            border: none;
+            /* Remove border */
+            border-radius: 4px;
+            background-color: #fff;
+            /* Same background as the body to blend in */
+            -webkit-appearance: none;
+            /* Remove default dropdown arrow in some browsers */
+            -moz-appearance: none;
+            /* Remove default dropdown arrow in some browsers */
+            appearance: none;
+            /* Remove default dropdown arrow */
+            background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="#000" d="M2 0L0 2h4z"/></svg>');
+            /* Custom dropdown arrow */
+            background-repeat: no-repeat;
+            background-position: right 10px top 50%;
+            background-size: 10px 10px;
+            text-align: center;
+        }
 
-        <div id="app" class="container">
+        .experimentalSelection .submit-button {
+            width: 100px;
+            padding: 10px;
+            background-color: #A6B1E1;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: background-color 0.3s ease;
+            margin-top: 0px;
+        }
 
-            <main>
-                <div class="sidebar">
-                    <button :class="{ active: currentTab === 'submit' }" @click="currentTab = 'submit'">提交实验</button>
-                    <button :class="{ active: currentTab === 'pending' }" @click="currentTab = 'pending'">待提交实验</button>
-                    <button :class="{ active: currentTab === 'submitted' }"
-                        @click="currentTab = 'submitted'">已提交实验</button>
-                    <svg class="logo" xmlns="http://www.w3.org/2000/svg" version="1.1" width="300" height="300"
-                        viewbox="0 0 640 480" xml:space="preserve">
-                        <g transform="matrix(3.31 0 0 3.31 320.4 240.4)">
-                            <circle
-                                style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(61,71,133); fill-rule: nonzero; opacity: 1;"
-                                cx="0" cy="0" r="40"></circle>
-                        </g>
-                        <g transform="matrix(0.98 0 0 0.98 268.7 213.7)">
-                            <circle
-                                style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
-                                cx="0" cy="0" r="40"></circle>
-                        </g>
-                        <g transform="matrix(1.01 0 0 1.01 362.9 210.9)">
-                            <circle
-                                style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
-                                cx="0" cy="0" r="40"></circle>
-                        </g>
-                        <g transform="matrix(0.92 0 0 0.92 318.5 286.5)">
-                            <circle
-                                style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
-                                cx="0" cy="0" r="40"></circle>
-                        </g>
-                        <g transform="matrix(0.16 -0.12 0.49 0.66 290.57 243.57)">
-                            <polygon
-                                style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
-                                points="-50,-50 -50,50 50,50 50,-50 "></polygon>
-                        </g>
-                        <g transform="matrix(0.16 0.1 -0.44 0.69 342.03 248.34)">
-                            <polygon
-                                style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
-                                vector-effect="non-scaling-stroke" points="-50,-50 -50,50 50,50 50,-50 "></polygon>
-                        </g>
-                    </svg>
-                    viewbox="0 0 640 480" xml:space="preserve">
-                </div>
+        .experimentalSelection .submit-button:hover {
+            background-color: #2d3661;
+        }
 
-                <div>
-                    <section v-if="currentTab === 'submit'" class="tab-content active">
-                        <h2>提交实验</h2>
-                        <h3>实验选择</h3>
-                        <div class="experimentalSelection">
-                            <select class="dropdown" v-model="selectedExperiment" @change="setExperimentTitle">
-                                <option disabled value="">请选择实验</option>
-                                <option v-for="record in records" :value="record.experimentTitle">
-                                    {{ record.experimentTitle }}
-                                </option>
-                            </select>
-                            <button class="submit-button" :class="{ disabled: isSubmitDisabled }" @click="confirm"
-                                :disabled="isSubmitDisabled">提交</button>
-                        </div>
+        .experimentalSelection .submit-button.disabled {
+            background-color: #d3d3d3;
+            cursor: not-allowed;
+        }
 
-                        <div v-if="selectedExperiment">
-                            <h3>提交实验</h3>
+        .experimentalSelection .submit-button.disabled:hover {
+            background-color: #d3d3d3;
+        }
+
+        .CodeMirror {
+            border: 1px solid #ccc;
+            height: 400px;
+        }
 
 
+        .experiment-record {
+            background: white;
+            padding: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: small;
+        }
 
-                            <div class="expContent">
-                                <div class="experimentTitle">实验标题:
-                                    <div>{{ selectedExperiment }}</div>
-                                </div>
-                                <div class="experimentExtent">实验内容:
-                                    <div>{{ experimentContent }}</div>
-                                </div>
-                                <div class="experimentRemarks">备注:
-                                    <div>{{ experimentRemarks }}</div>
-                                </div>
-                            </div>
-                            <h3>实验代码</h3>
-                            <form id="submit-form">
-                                <label for="experiment-answer">代码输入框:</label>
-                                <div class="editor-container">
-                                    <textarea id="code-editor" name="code"></textarea>
-                                </div>
+        .actions button {
+            padding: 10px;
+            background-color: #3e4684;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: background-color 0.3s ease;
+        }
 
-                                <button type="button" class="button" id="preview-btn" @click="preview">预览</button>
+        .actions button:hover {
+            background-color: #2d3661;
+        }
 
-                                <label for="experiment-media">上传代码文件:</label>
-                                <input type="file" id="experiment-media" accept=".html" multiple
-                                    @change="handleFileChange">
-                                <div id="media-preview" class="media-preview-container"></div>
+        .fontAndEffects {
+            font-weight: bold;
+        }
+    </style>
+</head>
 
+<body>
 
-                            </form>
-                            <div id="preview-section" class="preview-section hidden">
-                                <h3>实验预览</h3>
-                                <div id="preview-content"></div>
-                                <button type="button" id="edit-btn" class="codeSubmissionButton"
-                                    @click="edit">编辑</button>
-                            </div>
+<header>
+    <div>实验提交系统</div>
+    <div>当前账号</div>
+</header>
 
-                            <h3>答案补充</h3>
-                            <div class="expContent">
-                                <div id="editor-container" style="height: 400px;"></div>
-                            </div>
-                        </div>
+<div id="app" class="container">
 
-
-
-                    </section>
-
-
-
-
-
-
-
-
-
-
-
-                    <section v-if="currentTab === 'pending'" class="tab-content active">
-                        <h2>待提交实验</h2>
-                        <div id="experiment-records">
-                            <div v-for="pendingExperiment in pendingExperiments" :key="pendingExperiment.id"
-                                class="experiment-record">
-                                <div>
-                                    <div class="fontAndEffects">实验标题:</div> {{ pendingExperiment.experimentTitle }}
-                                </div>
-                                <div>
-                                    <div class="fontAndEffects">截止时间:</div> {{ pendingExperiment.deadline }}
-                                </div>
-                                <div class="actions">
-                                    <button @click="viewDetails(pendingExperiment)">开始实验</button>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-
-                    <section v-if="currentTab === 'submitted'" class="tab-content active">
-                        <h2>已提交实验</h2>
-
-                        <div id="experiment-records">
-                            <div v-for="submittedExperiment in submittedExperiments" :key="submittedExperiment.id"
-                                class="experiment-record">
-                                <div>
-                                    <div class="fontAndEffects">实验标题:</div> {{ submittedExperiment.experimentTitle }}
-                                </div>
-                                <div>
-                                    <div class="fontAndEffects">提交时间:</div> {{ submittedExperiment.submissionTime }}
-                                </div>
-                                <div class="actions">
-                                    <button @click="jumpInterface(submittedExperiment)">查看详情</button>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                </div>
-            </main>
-
-            <!-- <footer>
-                <div>版权所有：web小组</div>
-                <div>联系电话：17764979389</div>
-            </footer> -->
+    <main>
+        <div class="sidebar">
+            <button :class="{ active: currentTab === 'submit' }"
+                    @click="currentTab = 'submit'">提交实验
+            </button>
+            <button :class="{ active: currentTab === 'pending' }"
+                    @click="currentTab = 'pending'">待提交实验
+            </button>
+            <button :class="{ active: currentTab === 'submitted' }"
+                    @click="currentTab = 'submitted'">已提交实验
+            </button>
+            <svg class="logo" xmlns="http://www.w3.org/2000/svg" version="1.1" width="300" height="300"
+                 viewbox="0 0 640 480" xml:space="preserve">
+                            <g transform="matrix(3.31 0 0 3.31 320.4 240.4)">
+                                <circle
+                                        style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(61,71,133); fill-rule: nonzero; opacity: 1;"
+                                        cx="0" cy="0" r="40"></circle>
+                            </g>
+                <g transform="matrix(0.98 0 0 0.98 268.7 213.7)">
+                                <circle
+                                        style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+                                        cx="0" cy="0" r="40"></circle>
+                            </g>
+                <g transform="matrix(1.01 0 0 1.01 362.9 210.9)">
+                                <circle
+                                        style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+                                        cx="0" cy="0" r="40"></circle>
+                            </g>
+                <g transform="matrix(0.92 0 0 0.92 318.5 286.5)">
+                                <circle
+                                        style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+                                        cx="0" cy="0" r="40"></circle>
+                            </g>
+                <g transform="matrix(0.16 -0.12 0.49 0.66 290.57 243.57)">
+                                <polygon
+                                        style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+                                        points="-50,-50 -50,50 50,50 50,-50 "></polygon>
+                            </g>
+                <g transform="matrix(0.16 0.1 -0.44 0.69 342.03 248.34)">
+                                <polygon
+                                        style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+                                        vector-effect="non-scaling-stroke"
+                                        points="-50,-50 -50,50 50,50 50,-50 "></polygon>
+                            </g>
+                        </svg>
+            viewbox="0 0 640 480" xml:space="preserve">
         </div>
 
+        <div>
+            <section v-if="currentTab === 'submit'" class="tab-content active">
+                <h2>提交实验</h2>
+                <h3>实验选择</h3>
+                <div class="experimentalSelection">
+                    <select class="dropdown" v-model="selectedExperiment" @change="setExperimentTitle">
+                        <option disabled value="">请选择实验</option>
+                        <option v-for="record in records" :value="record.experimentTitle">
+                            {{ record.experimentTitle }}
+                        </option>
+                    </select>
+                    <button class="submit-button" :class="{ disabled: isSubmitDisabled }" @click="confirm"
+                            :disabled="isSubmitDisabled">提交
+                    </button>
+                </div>
+
+                <div v-if="selectedExperiment">
+                    <h3>提交实验</h3>
 
 
+                    <div class="expContent">
+                        <div class="experimentTitle">实验标题:
+                            <div>{{ selectedExperiment }}</div>
+                        </div>
+                        <div class="experimentExtent">实验内容:
+                            <div id="editor-experiment-content" style="height: 1cap;"></div>
+                        </div>
+                        <div class="experimentExtent">实验内容:
+                            <div>{{ experimentContent }}</div>
+                        </div>
+                        <div class="experimentRemarks">备注:
+                            <div>{{ experimentRemarks }}</div>
+                        </div>
+                    </div>
+                    <h3>实验代码</h3>
+                    <form id="submit-form">
+                        <label for="experiment-answer">代码输入框:</label>
+                        <div class="editor-container">
+                            <textarea id="code-editor" name="code"></textarea>
+                        </div>
+
+                        <button type="button" class="button" id="preview-btn" @click="preview">预览</button>
+
+                        <label for="experiment-media">上传代码文件:</label>
+                        <input type="file" id="experiment-media" accept=".html" multiple
+                               @change="handleFileChange">
+                        <div id="media-preview" class="media-preview-container"></div>
 
 
+                    </form>
+                    <div id="preview-section" class="preview-section hidden">
+                        <h3>实验预览</h3>
+                        <div id="preview-content"></div>
+                        <button type="button" id="edit-btn" class="codeSubmissionButton"
+                                @click="edit">编辑
+                        </button>
+                    </div>
+
+                    <h3>答案补充</h3>
+                    <div class="expContent">
+                        <div id="editor-container" style="height: 400px;"></div>
+                    </div>
+                </div>
 
 
+            </section>
 
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/codemirror.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/mode/javascript/javascript.min.js">
-        </script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/addon/edit/closebrackets.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/addon/lint/lint.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/addon/lint/javascript-lint.min.js">
-        </script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jshint/2.13.4/jshint.min.js"></script>
-        <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-        <script src="https://cdn.tiny.cloud/1/aufa3zmy4ycfhikrzhxt9q5u9bpn3s96rb5j1404txi2wf15/tinymce/5/tinymce.min.js"
-            referrerpolicy="origin"></script>
+            <section v-if="currentTab === 'pending'" class="tab-content active">
+                <h2>待提交实验</h2>
+                <div id="experiment-records">
+                    <div v-for="pendingExperiment in pendingExperiments" :key="pendingExperiment.id"
+                         class="experiment-record">
+                        <div>
+                            <div class="fontAndEffects">实验标题:</div>
+                            {{ pendingExperiment.experimentTitle }}
+                        </div>
+                        <div>
+                            <div class="fontAndEffects">截止时间:</div>
+                            {{ pendingExperiment.deadline }}
+                        </div>
+                        <div class="actions">
+                            <button @click="viewDetails(pendingExperiment)">开始实验</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                new Vue({
-                    el: '#app',
-                    data: {
-                        currentTab: 'submit',
-                        experiments: ['实验1.1 求知家园', '实验1.2 示例实验', '实验1.3 其他实验'],
-                        selectedExperiment: '',
-                        experimentContent: '',
-                        experimentRemarks: '',
-                        pendingExperiments: [{
-                            id: 1,
-                            studentAccount: 'student1',
-                            experimentTitle: '实验1.1 求知家园',
-                            deadline: '2024-06-21',
-                            submissionTime: '2024-06-21',
-                            experimentContent: `实验目的：
-    掌握编程语言的基本语法和结构。
-    学会设计和实现简单的算法，解决实际问题。
-    了解基本的数据结构，如数组和链表。
-    学习代码调试和测试的基本方法。
-    实验内容：
 
-    编写一个简单的程序，包含变量声明、输入输出操作、基本的控制结构（如条件判断、循环等）。
-    设计一个算法解决指定问题，并通过代码实现。要求代码逻辑清晰，注释规范。
-    实现并操作一个基本的数据结构，如数组或链表，进行数据的增删查改操作。
-    使用调试工具查找并修复程序中的错误，编写测试用例对程序进行测试，确保其功能正确。`,
-                        }, ],
-                        submittedExperiments: [{
-                            id: 3,
-                            studentAccount: 'student2',
-                            experimentTitle: '实验1.3 其他实验',
-                            deadline: '2024-06-21',
-                            submissionTime: '2024-06-20',
-                            experimentContent: '实验内容2',
-                        }],
-                        editor: null, // 初始化编辑器实例
-                        files: [], //存储多媒体文件
-                        isSubmitDisabled: true,
-                        records: [ // 添加实验记录
-                            {
-                                id: 1,
-                                studentAccount: 'student1',
-                                experimentTitle: '实验1.1 求知家园',
-                                deadline: '2024-06-21',
-                                submissionTime: '2024-06-21',
-                                experimentContent: `实验目的：
-    掌握编程语言的基本语法和结构。
-    学会设计和实现简单的算法，解决实际问题。
-    了解基本的数据结构，如数组和链表。
-    学习代码调试和测试的基本方法。
-    实验内容：
+            <section v-if="currentTab === 'submitted'" class="tab-content active">
+                <h2>已提交实验</h2>
 
-    编写一个简单的程序，包含变量声明、输入输出操作、基本的控制结构（如条件判断、循环等）。
-    设计一个算法解决指定问题，并通过代码实现。要求代码逻辑清晰，注释规范。
-    实现并操作一个基本的数据结构，如数组或链表，进行数据的增删查改操作。
-    使用调试工具查找并修复程序中的错误，编写测试用例对程序进行测试，确保其功能正确。`,
-                            },
-                            {
-                                id: 2,
-                                studentAccount: 'student2',
-                                experimentTitle: '实验1.2 示例实验',
-                                deadline: '2024-06-21',
-                                submissionTime: '2024-06-20',
-                                experimentContent: `编写一个简单的程序，包含变量声明、输入输出操作、基本的控制结构（如条件判断、循环等）。
-    设计一个算法解决指定问题，并通过代码实现。要求代码逻辑清晰，注释规范。
-    实现并操作一个基本的数据结构，如数组或链表，进行数据的增删查改操作。
-    使用调试工具查找并修复程序中的错误，编写测试用例对程序进行测试，确保其功能正确。`,
-                            },
-                            {
-                                id: 3,
-                                studentAccount: 'student2',
-                                experimentTitle: '实验1.3 其他实验',
-                                deadline: '2024-06-21',
-                                submissionTime: '2024-06-20',
-                                experimentContent: '实验内容2',
-                            }
-                        ]
+                <div id="experiment-records">
+                    <div v-for="submittedExperiment in submittedExperiments" :key="submittedExperiment.id"
+                         class="experiment-record">
+                        <div>
+                            <div class="fontAndEffects">实验标题:</div>
+                            {{ submittedExperiment.experimentTitle }}
+                        </div>
+                        <div>
+                            <div class="fontAndEffects">提交时间:</div>
+                            {{ submittedExperiment.submissionTime }}
+                        </div>
+                        <div class="actions">
+                            <button @click="jumpInterface(submittedExperiment)">查看详情</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- <footer>
+        <div>版权所有：web小组</div>
+        <div>联系电话：17764979389</div>
+    </footer> -->
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/mode/javascript/javascript.min.js">
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/addon/edit/closebrackets.min.js">
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/addon/lint/lint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/addon/lint/javascript-lint.min.js">
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jshint/2.13.4/jshint.min.js"></script>
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<script
+        src="https://cdn.tiny.cloud/1/aufa3zmy4ycfhikrzhxt9q5u9bpn3s96rb5j1404txi2wf15/tinymce/5/tinymce.min.js"
+        referrerpolicy="origin"></script>
+
+
+<script>
+    const targetIp = 'http://localhost'; // 目标 IP
+    const targetPort = '8090'; // 目标端口
+    document.addEventListener('DOMContentLoaded', function () {
+        new Vue({
+            el: '#app',
+            data: {
+
+
+                quillExperimentContent: null,
+                currentTab: 'submit',
+                experiments: ['实验1.1 求知家园', '实验1.2 示例实验', '实验1.3 其他实验'],
+                //提交实验
+                selectedExperiment: '',
+                experimentContent: '',
+                experimentRemarks: '',
+
+
+                pendingExperiments: [{
+                    id: 1,
+                    studentAccount: 'student1',
+                    experimentTitle: '实验1.1 求知家园',
+                    deadline: '2024-06-21',
+                    submissionTime: '2024-06-21',
+                    experimentContent: `实验目的：
+        掌握编程语言的基本语法和结构。
+        学会设计和实现简单的算法，解决实际问题。
+        了解基本的数据结构，如数组和链表。
+        学习代码调试和测试的基本方法。
+        实验内容：
+
+        编写一个简单的程序，包含变量声明、输入输出操作、基本的控制结构（如条件判断、循环等）。
+        设计一个算法解决指定问题，并通过代码实现。要求代码逻辑清晰，注释规范。
+        实现并操作一个基本的数据结构，如数组或链表，进行数据的增删查改操作。
+        使用调试工具查找并修复程序中的错误，编写测试用例对程序进行测试，确保其功能正确。`,
+                },],
+                submittedExperiments: [{
+                    id: 3,
+                    studentAccount: 'student2',
+                    experimentTitle: '实验1.3 其他实验',
+                    deadline: '2024-06-21',
+                    submissionTime: '2024-06-20',
+                    experimentContent: '实验内容2',
+
+                },
+                    {
+                        id: 3,
+                        studentAccount: 'student2',
+                        experimentTitle: '实验1.3 其他实验',
+                        deadline: '2024-06-21',
+                        submissionTime: '2024-06-20',
+                        experimentContent: '实验内容2',
+
+                    }
+                ],
+                editor: null, // 初始化编辑器实例
+                files: [], //存储多媒体文件
+                isSubmitDisabled: true,
+                records: [ // 添加实验记录
+                    {
+                        id: 1,
+                        studentAccount: 'student1',
+                        experimentTitle: '实验1.1 求知家园',
+                        deadline: '2024-06-21',
+                        submissionTime: '2024-06-21',
+                        experimentContent: `实验目的：
+        掌握编程语言的基本语法和结构。
+        学会设计和实现简单的算法，解决实际问题。
+        了解基本的数据结构，如数组和链表。
+        学习代码调试和测试的基本方法。
+        实验内容：
+
+        编写一个简单的程序，包含变量声明、输入输出操作、基本的控制结构（如条件判断、循环等）。
+        设计一个算法解决指定问题，并通过代码实现。要求代码逻辑清晰，注释规范。
+        实现并操作一个基本的数据结构，如数组或链表，进行数据的增删查改操作。
+        使用调试工具查找并修复程序中的错误，编写测试用例对程序进行测试，确保其功能正确。`,
                     },
-                    mounted() {
-                        this.initializeCodeMirror();
-                        this.fetchAllExperiments();
+                    {
+                        id: 2,
+                        studentAccount: 'student2',
+                        experimentTitle: '实验1.2 示例实验',
+                        deadline: '2024-06-21',
+                        submissionTime: '2024-06-20',
+                        experimentContent: `编写一个简单的程序，包含变量声明、输入输出操作、基本的控制结构（如条件判断、循环等）。
+        设计一个算法解决指定问题，并通过代码实现。要求代码逻辑清晰，注释规范。
+        实现并操作一个基本的数据结构，如数组或链表，进行数据的增删查改操作。
+        使用调试工具查找并修复程序中的错误，编写测试用例对程序进行测试，确保其功能正确。`,
                     },
-                    methods: {
-                        setExperimentTitle() {
-                            // 清空实验内容和备注
-                            this.experimentContent = '';
-                            this.experimentRemarks = '这里是备注内容。';
+                    {
+                        id: 3,
+                        studentAccount: 'student2',
+                        experimentTitle: '实验1.3 其他实验',
+                        deadline: '2024-06-21',
+                        submissionTime: '2024-06-20',
+                        experimentContent: '实验内容2',
+                    }
+                ]
+            },
+            mounted() {
+                this.initializeCodeMirror();
+                this.fetchAllExperiments();
+                this.initializeQuill();
+            },
+            methods: {
+                initializeQuill() {
+                    this.quillExperimentContent = new Quill('#editor-experiment-content', {
+                        theme: 'snow',
+                        readOnly: true
+                    });
+                },
 
-                            const selected = this.experiments.find(experiment => experiment === this
-                                .selectedExperiment);
-                            if (selected) {
-                                const record = this.records.find(record => record.experimentTitle ===
-                                    selected);
-                                if (record) {
-                                    this.experimentContent = record.experimentContent;
-                                    this.experimentRemarks = record.remarks || '暂无备注';
-                                }
-                                this.selectedExperiment = selected;
-                            }
-                            this.$nextTick(() => {
-                                this.initializeCodeMirror();
-                            });
-                        },
-                        viewDetails(record) {
-                            this.currentTab = 'submit';
-                            this.selectedExperiment = record.experimentTitle;
+                setExperimentTitle() {
+                    // 清空实验内容和备注
+                    this.experimentContent = '';
+                    this.experimentRemarks = '这里是备注内容。';
+
+                    const selected = this.experiments.find(experiment => experiment === this
+                        .selectedExperiment);
+                    if (selected) {
+                        const record = this.records.find(record => record
+                                .experimentTitle ===
+                            selected);
+                        if (record) {
                             this.experimentContent = record.experimentContent;
                             this.experimentRemarks = record.remarks || '暂无备注';
-                            this.$nextTick(() => {
-                                this.initializeCodeMirror();
-                            });
-                        },
-
-                        jumpInterface(record) {
-                            const url =
-                                `ViewDetails.html?record=${encodeURIComponent(JSON.stringify(record))}`;
-                            window.location.href = "./ViewDetails.html";
-                        },
-
-                        initializeCodeMirror() {
-                            this.$nextTick(() => {
-                                if (!this.editor) {
-                                    this.editor = CodeMirror.fromTextArea(document
-                                        .getElementById(
-                                            "code-editor"), {
-                                            lineNumbers: true,
-                                            mode: "javascript",
-                                            theme: "default",
-                                            autoCloseBrackets: true,
-                                            gutters: ["CodeMirror-lint-markers"],
-                                            lint: true
-                                        });
-                                    this.editor.on('change', () => {
-                                        this.checkSubmitButton();
-                                    });
-                                } else {
-                                    this.editor.toTextArea();
-                                    this.editor = CodeMirror.fromTextArea(document
-                                        .getElementById(
-                                            "code-editor"), {
-                                            lineNumbers: true,
-                                            mode: "javascript",
-                                            theme: "default",
-                                            autoCloseBrackets: true,
-                                            gutters: ["CodeMirror-lint-markers"],
-                                            lint: true
-                                        });
-                                    this.editor.on('change', () => {
-                                        this.checkSubmitButton();
-                                    });
-                                }
-                            });
-                        },
-                        preview() {
-                            const code = this.editor.getValue();
-
-                            if (!code) {
-                                alert('请输入代码');
-                                return;
-                            }
-                            const previewWindow = window.open('', '_blank');
-                            previewWindow.document.open();
-                            previewWindow.document.write(code);
-                            previewWindow.document.close();
-                        },
-
-
-
-                        checkSubmitButton() {
-                            const code = this.editor ? this.editor.getValue() : '';
-                            this.isSubmitDisabled = !this.selectedExperiment || (!code && this.files
-                                .length === 0);
-                        },
-
-
-                        handleFileChange(event) {
-                            this.files = Array.from(event.target.files);
-                            this.checkSubmitButton();
-                        },
-
-
-
-
-                        confirm() {
-                            alert(1)
-                            const code = this.editor.getValue();
-                            const mediaFiles = this.files;
-                            const selectedExperiment = this.selectedExperiment;
-                            const experimentContent = this.experimentContent;
-                            const experimentRemarks = this.experimentRemarks;
-
-                            if (!code && mediaFiles.length === 0) {
-                                alert('代码输入框和上传文件均为空，请输入代码或上传文件。');
-                                return;
-                            }
-
-                            // 创建表单数据
-                            const formData = new FormData();
-                            formData.append('selectedExperiment', selectedExperiment);
-                            formData.append('experimentContent', experimentContent);
-                            formData.append('experimentRemarks', experimentRemarks);
-                            formData.append('code', code);
-
-                            if (mediaFiles.length > 0) {
-                                formData.append('file', mediaFiles[0]);
-                            }
-
-                            // 发送请求
-                            axios.post('/api/submitExperiment', formData)
-                                .then(response => {
-                                    alert('实验已提交！');
-                                    document.getElementById('preview-section').classList.add(
-                                        'hidden');
-                                    document.getElementById('submit-form').reset();
-                                    document.getElementById('media-preview').innerHTML = '';
-                                    this.editor.setValue('');
-                                    this.files = [];
-                                    this.checkSubmitButton();
-                                    document.getElementById('submit-form').classList.remove(
-                                        'hidden');
-                                })
-                                .catch(error => {
-                                    console.error('提交实验失败：', error);
-                                    alert('提交实验失败，请重试。');
-                                });
-                        },
-
-
-                        edit() {
-                            document.getElementById('preview-section').classList.add('hidden');
-                            document.getElementById('submit-form').classList.remove('hidden');
-                        },
-                        //获取实验接口
-                        fetchAllExperiments() {
-                            // 发送请求获取所有实验记录
-                            axios.get('/api/getAllExperiments') // 替换为实际的后端接口
-                                .then(response => {
-                                    this.records = response.data;
-                                })
-                                .catch(error => {
-                                    console.error('Error fetching all experiments:', error);
-                                });
-                        },
-
-
-
-                        fetchPendingExperiments() {
-                            // 发送请求获取未完成实验列表
-                            axios.get('/api/getPendingExperiments') // 替换为实际的后端接口
-                                .then(response => {
-                                    this.pendingExperiments = response.data;
-                                })
-                                .catch(error => {
-                                    console.error('Error fetching pending experiments:', error);
-                                });
-                        },
-                        fetchSubmittedExperiments() {
-                            axios.get('/api/getSubmittedExperiments') // 替换为实际的后端接口
-                                .then(response => {
-                                    this.submittedExperiments = response.data;
-                                })
-                                .catch(error => {
-                                    console.error('Error fetching submitted experiments:', error);
-                                });
-                        },
+                        }
+                        this.selectedExperiment = selected;
                     }
-                });
+                    this.$nextTick(() => {
+                        this.initializeCodeMirror();
+                    });
+                },
+                viewDetails(record) {
+                    this.currentTab = 'submit';
+                    this.selectedExperiment = record.experimentTitle;
+                    this.experimentContent = record.experimentContent;
+                    this.experimentRemarks = record.remarks || '暂无备注';
+                    this.$nextTick(() => {
+                        this.initializeCodeMirror();
+                    });
+                },
 
-            });
+                jumpInterface(record) {
+                    const url =
+                        `ViewDetails.html?record=${encodeURIComponent(JSON.stringify(record))}`;
+                    window.location.href = "./ViewDetails.html";
+                },
 
-
-            //预览显示
-            document.getElementById('experiment-media').addEventListener('change', (e) => {
-                const mediaPreview = document.getElementById('media-preview');
-                mediaPreview.innerHTML = '';
-                Array.from(e.target.files).forEach(file => {
-                    const fileReader = new FileReader();
-                    fileReader.onload = (event) => {
-                        let mediaElement;
-                        if (file.type === 'text/html') {
-                            mediaElement = document.createElement('iframe');
-                            mediaElement.srcdoc = event.target.result;
-                            mediaElement.style.width = '100%';
-                            mediaElement.style.height = '300px';
+                initializeCodeMirror() {
+                    this.$nextTick(() => {
+                        if (!this.editor) {
+                            this.editor = CodeMirror.fromTextArea(document
+                                .getElementById(
+                                    "code-editor"), {
+                                lineNumbers: true,
+                                mode: "javascript",
+                                theme: "default",
+                                autoCloseBrackets: true,
+                                gutters: ["CodeMirror-lint-markers"],
+                                lint: true
+                            });
+                            this.editor.on('change', () => {
+                                this.checkSubmitButton();
+                            });
+                        } else {
+                            this.editor.toTextArea();
+                            this.editor = CodeMirror.fromTextArea(document
+                                .getElementById(
+                                    "code-editor"), {
+                                lineNumbers: true,
+                                mode: "javascript",
+                                theme: "default",
+                                autoCloseBrackets: true,
+                                gutters: ["CodeMirror-lint-markers"],
+                                lint: true
+                            });
+                            this.editor.on('change', () => {
+                                this.checkSubmitButton();
+                            });
                         }
-                        if (mediaElement) {
-                            mediaElement.classList.add('media-item');
-                            mediaPreview.appendChild(mediaElement);
+                    });
+                },
+                preview() {
+                    const code = this.editor.getValue();
+
+                    if (!code) {
+                        alert('请输入代码');
+                        return;
+                    }
+                    const previewWindow = window.open('', '_blank');
+                    previewWindow.document.open();
+                    previewWindow.document.write(code);
+                    previewWindow.document.close();
+                },
+
+
+                checkSubmitButton() {
+                    const code = this.editor ? this.editor.getValue() : '';
+                    this.isSubmitDisabled = !this.selectedExperiment || (!code && this.files
+                        .length === 0);
+                },
+
+
+                handleFileChange(event) {
+                    this.files = Array.from(event.target.files);
+                    this.checkSubmitButton();
+                },
+
+
+                confirm() {
+                    const code = this.editor.getValue();
+                    const mediaFiles = this.files;
+                    const selectedExperiment = this.selectedExperiment;
+                    const experimentContent = this.experimentContent;
+                    const experimentRemarks = this.experimentRemarks;
+
+                    if (!code && mediaFiles.length === 0) {
+                        alert('代码输入框和上传文件均为空，请输入代码或上传文件。');
+                        return;
+                    }
+
+                    // 创建表单数据
+                    const formData = new FormData();
+                    const userData = JSON.parse(localStorage.getItem('userData'));
+                    formData.append('selectedExperiment', selectedExperiment);
+                    formData.append('account', userData.account);
+                    formData.append('experimentContent', experimentContent);
+                    formData.append('experimentRemarks', experimentRemarks);
+                    formData.append('code', code);
+
+                    if (mediaFiles.length > 0) {
+                        formData.append('file', mediaFiles[0]);
+                    }
+
+                    // 发送请求
+                    axios.get(`${targetIp}:${targetPort}/api/submitExperiment`,
+                        formData)
+                        .then(response => {
+                            alert('实验已提交！');
+                            document.getElementById('preview-section').classList.add(
+                                'hidden');
+                            document.getElementById('submit-form').reset();
+                            document.getElementById('media-preview').innerHTML = '';
+                            this.editor.setValue('');
+                            this.files = [];
+                            this.checkSubmitButton();
+                            document.getElementById('submit-form').classList.remove(
+                                'hidden');
+                        })
+                        .catch(error => {
+                            console.error('提交实验失败：', error);
+                            alert('提交实验失败，请重试。');
+                        });
+                },
+
+
+                edit() {
+                    document.getElementById('preview-section').classList.add('hidden');
+                    document.getElementById('submit-form').classList.remove('hidden');
+                },
+                //获取实验接口
+                fetchAllExperiments() {
+                    // 发送请求获取所有实验记录
+                    const userData = JSON.parse(localStorage.getItem('userData'));
+                    axios.get(`${targetIp}:${targetPort}/api/getPendingExperiments`, {
+                        params: {
+                            account: userData.account // 假设 this.account 是你想要传递的参数
                         }
-                    };
-                    fileReader.readAsText(file);
-                });
-            });
+                    })
+                        .then(response => {
+                            this.records = response.data;
+                        })
+                        .catch(error => {
+                            console.error('Error fetching all experiments:', error);
+                        });
+                },
 
-            //添加文字上传补充
-            var quill = new Quill('#editor-container', {
-                theme: 'snow',
-                modules: {
-                    toolbar: [
-                        [{
-                            'header': [1, 2, false]
-                        }],
-                        ['bold', 'italic', 'underline'],
-                        [{
-                            'list': 'ordered'
-                        }, {
-                            'list': 'bullet'
-                        }],
-                        ['link', 'image', 'video'],
-                        [{
-                            'align': []
-                        }],
-                        ['clean']
-                    ]
-                }
-            });
 
-            // 添加图片上传处理
-            function selectLocalImage() {
-                const input = document.createElement('input');
-                input.setAttribute('type', 'file');
-                input.setAttribute('accept', 'image/*');
-                input.click();
-
-                input.onchange = () => {
-                    const file = input.files[0];
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const range = quill.getSelection();
-                        quill.insertEmbed(range.index, 'image', e.target.result);
-                    };
-                    reader.readAsDataURL(file);
-                };
+                fetchPendingExperiments() {
+                    // 发送请求获取未完成实验列表
+                    const userData = JSON.parse(localStorage.getItem('userData'));
+                    axios.get(`${targetIp}:${targetPort}/api/getPendingExperiments`, {
+                        params: {
+                            account: userData.account // 假设 this.account 是你想要传递的参数
+                        }
+                    })
+                        .then(response => {
+                            this.pendingExperiments.push(response.data)
+                        })
+                        .catch(error => {
+                            console.error('Error fetching pending experiments:', error);
+                        });
+                },
+                fetchSubmittedExperiments() {
+                    const userData = JSON.parse(localStorage.getItem('userData'));
+                    axios.get(
+                        `${targetIp}:${targetPort}/api/getSubmittedExperiments`, {
+                            params: {
+                                account: userData.account // 假设 this.account 是你想要传递的参数
+                            }
+                        }) // 替换为实际的后端接口
+                        .then(response => {
+                            this.submittedExperiments = response.data;
+                        })
+                        .catch(error => {
+                            console.error('Error fetching submitted experiments:',
+                                error);
+                        });
+                },
             }
+        });
 
-            // 添加视频上传处理
-            function selectLocalVideo() {
-                const input = document.createElement('input');
-                input.setAttribute('type', 'file');
-                input.setAttribute('accept', 'video/*');
-                input.click();
+    });
 
-                input.onchange = () => {
-                    const file = input.files[0];
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const range = quill.getSelection();
-                        quill.insertEmbed(range.index, 'video', e.target.result);
-                    };
-                    reader.readAsDataURL(file);
-                };
-            }
 
-            // 工具栏按钮事件绑定
-            quill.getModule('toolbar').addHandler('image', selectLocalImage);
-            quill.getModule('toolbar')
-                .addHandler('video', selectLocalVideo);
-            window.addEventListener('wheel', function (e) {
-                if (e.ctrlKey) {
-                    e.preventDefault();
+    //预览显示
+    document.getElementById('experiment-media').addEventListener('change', (e) => {
+        const mediaPreview = document.getElementById('media-preview');
+        mediaPreview.innerHTML = '';
+        Array.from(e.target.files).forEach(file => {
+            const fileReader = new FileReader();
+            fileReader.onload = (event) => {
+                let mediaElement;
+                if (file.type === 'text/html') {
+                    mediaElement = document.createElement('iframe');
+                    mediaElement.srcdoc = event.target.result;
+                    mediaElement.style.width = '100%';
+                    mediaElement.style.height = '300px';
                 }
-            }, {
-                passive: false
-            });
-        </script>
-    </body>
+                if (mediaElement) {
+                    mediaElement.classList.add('media-item');
+                    mediaPreview.appendChild(mediaElement);
+                }
+            };
+            fileReader.readAsText(file);
+        });
+    });
 
-    </html>
+    //添加文字上传补充
+    var quill = new Quill('#editor-container', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{
+                    'header': [1, 2, false]
+                }],
+                ['bold', 'italic', 'underline'],
+                [{
+                    'list': 'ordered'
+                }, {
+                    'list': 'bullet'
+                }],
+                ['link', 'image', 'video'],
+                [{
+                    'align': []
+                }],
+                ['clean']
+            ]
+        }
+    });
+
+    // 添加图片上传处理
+    function selectLocalImage() {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+        input.click();
+
+        input.onchange = () => {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const range = quill.getSelection();
+                quill.insertEmbed(range.index, 'image', e.target.result);
+            };
+            reader.readAsDataURL(file);
+        };
+    }
+
+    // 添加视频上传处理
+    function selectLocalVideo() {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'video/*');
+        input.click();
+
+        input.onchange = () => {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const range = quill.getSelection();
+                quill.insertEmbed(range.index, 'video', e.target.result);
+            };
+            reader.readAsDataURL(file);
+        };
+    }
+
+    // 工具栏按钮事件绑定
+    quill.getModule('toolbar').addHandler('image', selectLocalImage);
+    quill.getModule('toolbar')
+        .addHandler('video', selectLocalVideo);
+    window.addEventListener('wheel', function (e) {
+        if (e.ctrlKey) {
+            e.preventDefault();
+        }
+    }, {
+        passive: false
+    });
+</script>
+</body>
+
+</html>
