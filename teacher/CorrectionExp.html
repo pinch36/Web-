@@ -208,10 +208,7 @@
                     <div style="font-weight: bold;">实验标题:</div>
                     <div style="font-weight:lighter">{{ record.experimentTitle }}</div>
                 </div>
-                <div>
-                    <div style="font-weight: bold;">提交时间:</div>
-                    <div style="font-weight:lighter">{{ record.submissionTime }}</div>
-                </div>
+
                 <div class="actions">
                     <button @click="jumpInterface(record)">查看详情</button>
                     <button @click="evaluateCode(record)" style="background-color:#A6B1E1 ;">批改作业</button>
@@ -250,77 +247,15 @@
             submittedExperiments: [],
             searchQuery: '', // 添加搜索查询数据
             records: [ // 添加实验记录
-                {
-                    id: 1,
-                    studentAccount: 'student1',
-                    experimentTitle: '实验1',
-                    submissionTime: '2024-06-21',
-                    experimentContent: '实验内容1',
-                    code: '123'
-                },
-                {
-                    id: 2,
-                    studentAccount: 'student2',
-                    experimentTitle: '实验2',
-                    submissionTime: '2024-06-20',
-                    experimentContent: '实验内容2',
-                },
-                //
-                {
-                    id: 2,
-                    studentAccount: 'student2',
-                    experimentTitle: '实验2',
-                    submissionTime: '2024-06-20',
-                    status: 2,
-                    experimentContent: '实验内容2',
-                },
-                {
-                    id: 2,
-                    studentAccount: 'student2',
-                    experimentTitle: '实验2',
-                    submissionTime: '2024-06-20',
-                    experimentContent: '实验内容2',
-                },
-                {
-                    id: 2,
-                    studentAccount: 'student2',
-                    experimentTitle: '实验2',
-                    submissionTime: '2024-06-20',
-                    experimentContent: '实验内容2',
-                    codeReview: '很好'
-                },
-                {
-                    id: 2,
-                    studentAccount: 'student2',
-                    experimentTitle: '实验2',
-                    submissionTime: '2024-06-20',
-                    experimentContent: '实验内容2',
-                    codeReview: '很好'
-                },
-                {
-                    id: 2,
-                    studentAccount: 'student2',
-                    experimentTitle: '实验2',
-                    submissionTime: '2024-06-20',
-                    experimentContent: '实验内容2',
-                    codeReview: '很好'
-                },
-                {
-                    id: 2,
-                    studentAccount: 'student2',
-                    experimentTitle: '实验2',
-                    submissionTime: '2024-06-20',
-                    experimentContent: '实验内容2',
-                    codeReview: '很好'
-                },
-                {
-                    id: 2,
-                    studentAccount: 'student2',
-                    experimentTitle: '实验2',
-                    submissionTime: '2024-06-20',
-                    experimentContent: '实验内容2',
-                    codeReview: '很好'
-                },
+
+                // {
+                //     id: 2,
+                //     studentAccount: 'student2',
+                //     experimentTitle: '实验2',
+                //     submissionTime: '2024-06-20',
+                //     experimentContent: '实验内容2',
+                //     codeReview: '很好'
+                // },
 
             ]
         },
@@ -329,17 +264,17 @@
         },
         methods: {
             fetchExperimentRecords() {
-                axios.get('${targetIp}:${targetPort}/api/getExperimentRecords')
+                axios.get('http://localhost:8090/api/getExperimentRecords')
                     .then(response => {
                         // 将返回的数据添加到 records 数组中
-                        this.records.push(...response.data);
+                        this.records.push(...response.data.data);
                     })
                     .catch(error => {
                         console.error('获取实验记录失败:', error);
                     });
             },
             jumpInterface(record) {
-                const url = `ViewDetails.html?record=${encodeURIComponent(JSON.stringify(record))}`;
+                const url = `../student/ViewDetails.html?record=${encodeURIComponent(JSON.stringify(record))}`;
                 window.location.href = url;
             },
 
@@ -418,10 +353,9 @@
                     });
 
 
-                axios.post('${targetIp}:${targetPort}/api/correctionAndUpdate', {
+                axios.post('http://localhost:8090/api/correctionAndUpdate', {
                     studentAccount: record.studentAccount,
                     experimentTitle: record.experimentTitle,
-                    status: 2
                 })
                     .then(response => {
                         console.log('实验状态更新成功:', response.data);

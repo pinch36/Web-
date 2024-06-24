@@ -10,6 +10,8 @@
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.6/theme/material-darker.min.css">
     <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://cdn.jsdelivr.net/npm/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
     <style>
         * {
             font-family: "Poppins", Arial, sans-serif;
@@ -367,6 +369,19 @@
         .fontAndEffects {
             font-weight: bold;
         }
+
+        .status-icon {
+            position: absolute;
+            /* 绝对定位 */
+            right: -30px;
+            /* 向右移动 */
+            top: 50%;
+            /* 垂直居中 */
+            transform: translateY(-50%);
+            /* 修正垂直居中 */
+            color: green;
+            font-size: 30px;
+        }
     </style>
 </head>
 
@@ -374,9 +389,9 @@
 
 <header>
     <div style="color: #ffffff; font-weight: bold;">实验提交系统</div>
-    <div>
+    <!-- <div>
         <button style="color: white;">当前账号</button>
-    </div>
+    </div> -->
 </header>
 
 <div id="app" class="container">
@@ -384,46 +399,43 @@
     <main>
         <div class="sidebar">
             <button :class="{ active: currentTab === 'submit' }" @click="changeTab('submit')">提交实验</button>
-            <button :class="{ active: currentTab === 'pending' }"
-                    @click="changeTab('pending')">待提交实验
+            <button :class="{ active: currentTab === 'pending' }" @click="changeTab('pending')">待提交实验
             </button>
-            <button :class="{ active: currentTab === 'submitted' }"
-                    @click="changeTab('submitted')">已提交实验
+            <button :class="{ active: currentTab === 'submitted' }" @click="changeTab('submitted')">已提交实验
             </button>
             <svg class="logo" xmlns="http://www.w3.org/2000/svg" version="1.1" width="300" height="300"
                  viewbox="0 0 640 480" xml:space="preserve">
-                            <g transform="matrix(3.31 0 0 3.31 320.4 240.4)">
-                                <circle
-                                        style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(61,71,133); fill-rule: nonzero; opacity: 1;"
-                                        cx="0" cy="0" r="40"></circle>
-                            </g>
+                    <g transform="matrix(3.31 0 0 3.31 320.4 240.4)">
+                        <circle
+                                style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(61,71,133); fill-rule: nonzero; opacity: 1;"
+                                cx="0" cy="0" r="40"></circle>
+                    </g>
                 <g transform="matrix(0.98 0 0 0.98 268.7 213.7)">
-                                <circle
-                                        style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
-                                        cx="0" cy="0" r="40"></circle>
-                            </g>
+                        <circle
+                                style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+                                cx="0" cy="0" r="40"></circle>
+                    </g>
                 <g transform="matrix(1.01 0 0 1.01 362.9 210.9)">
-                                <circle
-                                        style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
-                                        cx="0" cy="0" r="40"></circle>
-                            </g>
+                        <circle
+                                style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+                                cx="0" cy="0" r="40"></circle>
+                    </g>
                 <g transform="matrix(0.92 0 0 0.92 318.5 286.5)">
-                                <circle
-                                        style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
-                                        cx="0" cy="0" r="40"></circle>
-                            </g>
+                        <circle
+                                style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+                                cx="0" cy="0" r="40"></circle>
+                    </g>
                 <g transform="matrix(0.16 -0.12 0.49 0.66 290.57 243.57)">
-                                <polygon
-                                        style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
-                                        points="-50,-50 -50,50 50,50 50,-50 "></polygon>
-                            </g>
+                        <polygon
+                                style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+                                points="-50,-50 -50,50 50,50 50,-50 "></polygon>
+                    </g>
                 <g transform="matrix(0.16 0.1 -0.44 0.69 342.03 248.34)">
-                                <polygon
-                                        style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
-                                        vector-effect="non-scaling-stroke"
-                                        points="-50,-50 -50,50 50,50 50,-50 "></polygon>
-                            </g>
-                        </svg>
+                        <polygon
+                                style="stroke: rgb(0,0,0); stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;"
+                                vector-effect="non-scaling-stroke" points="-50,-50 -50,50 50,50 50,-50 "></polygon>
+                    </g>
+                </svg>
         </div>
 
         <div>
@@ -467,8 +479,7 @@
                         <button type="button" class="button" id="preview-btn" @click="preview">预览</button>
 
                         <label for="experiment-media">上传代码文件:</label>
-                        <input type="file" id="experiment-media" accept=".html" multiple
-                               @change="handleFileChange">
+                        <input type="file" id="experiment-media" accept=".html" multiple @change="handleFileChange">
                         <div id="media-preview" class="media-preview-container"></div>
 
 
@@ -476,8 +487,7 @@
                     <div id="preview-section" class="preview-section hidden">
                         <h3>实验预览</h3>
                         <div id="preview-content"></div>
-                        <button type="button" id="edit-btn" class="codeSubmissionButton"
-                                @click="edit">编辑
+                        <button type="button" id="edit-btn" class="codeSubmissionButton" @click="edit">编辑
                         </button>
                     </div>
 
@@ -500,10 +510,10 @@
                             <div class="fontAndEffects">实验标题:</div>
                             {{ pendingExperiment.experimentTitle }}
                         </div>
-                        <div>
-                            <div class="fontAndEffects">截止时间:</div>
-                            {{ pendingExperiment.deadline }}
-                        </div>
+                        <!--                        <div>-->
+                        <!--                            <div class="fontAndEffects">截止时间:</div>-->
+                        <!--                            {{ pendingExperiment.deadline }}-->
+                        <!--                        </div>-->
                         <div class="actions">
                             <button @click="viewDetails(pendingExperiment)">开始实验</button>
                         </div>
@@ -522,13 +532,16 @@
                             <div class="fontAndEffects">实验标题:</div>
                             {{ submittedExperiment.experimentTitle }}
                         </div>
-                        <div>
-                            <div class="fontAndEffects">提交时间:</div>
-                            {{ submittedExperiment.submissionTime }}
-                        </div>
+                        <!--                        <div>-->
+                        <!--                            <div class="fontAndEffects">提交时间:</div>-->
+                        <!--                            {{ submittedExperiment.submissionTime }}-->
+                        <!--                        </div>-->
                         <div class="actions">
                             <button @click="jumpInterface(submittedExperiment)">查看详情</button>
                         </div>
+                        <ion-icon v-if="submittedExperiment.status === 2" name="checkmark-circle-outline"
+                                  class="status-icon">
+                        </ion-icon>
                     </div>
                 </div>
             </section>
@@ -536,9 +549,9 @@
     </main>
 
     <!-- <footer>
-        <div>版权所有：web小组</div>
-        <div>联系电话：17764979389</div>
-    </footer> -->
+    <div>版权所有：web小组</div>
+    <div>联系电话：17764979389</div>
+</footer> -->
 </div>
 
 
@@ -603,7 +616,7 @@
                     deadline: '2024-06-21',
                     submissionTime: '2024-06-20',
                     experimentContent: '实验内容2',
-                    code: "21124214",
+                    code: ``,
                     status: 2
                 },
                     {
@@ -664,6 +677,9 @@
                     this.initializeCodeMirror();
                 });
                 this.fetchAllExperiments();
+                this.fetchPendingExperiments();
+                this.fetchSubmittedExperiments();
+                console.log('Submitted experiments:', this.submittedExperiments); // 添加日志
             },
             methods: {
 
@@ -881,7 +897,8 @@
                         }
                     })
                         .then(response => {
-                            this.pendingExperiments.push(response.data.data)
+                            this.pendingExperiments.push.apply(this.pendingExperiments, response.data.data);
+                            // this.pendingExperiments.push(response.data.data)
                         })
                         .catch(error => {
                             console.error('Error fetching pending experiments:', error);
@@ -896,7 +913,8 @@
                             }
                         }) // 替换为实际的后端接口
                         .then(response => {
-                            this.submittedExperiments = response.data.data;
+                            this.submittedExperiments.push.apply(this.submittedExperiments, response.data.data);
+                            // this.submittedExperiments = response.data.data;
                         })
                         .catch(error => {
                             console.error('Error fetching submitted experiments:',

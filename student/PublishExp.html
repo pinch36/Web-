@@ -6,6 +6,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
     <title>实验发布系统</title>
     <style>
         * {
@@ -160,9 +162,11 @@
             color: white;
             padding: 10px;
             border-radius: 8px;
+            height: 50px;
         }
 
         h1 {
+            font-size: 20px;
             margin: 0;
         }
 
@@ -329,8 +333,11 @@
 <div class="container">
     <header>
         <h1>实验发布系统</h1>
-        <button id="login-btn">登录教师账号</button>
-        <button id="toggle-section-btn">查看题库</button>
+        <div>
+            <button id="section-btn" onclick="window.location.href='../teacher/CorrectionExp.html'">批改</button>
+            <button id=" toggle-section-btn">查看题库</button>
+        </div>
+
     </header>
     <main id="main-content">
         <section id="publish-section">
@@ -379,6 +386,8 @@
         </section>
     </main>
 </div>
+
+</body>
 <script>
     let questionCounter = 1;
     const questions = [];
@@ -493,6 +502,25 @@
 
     // Confirm publishing the experiment
     document.getElementById('confirm-btn').addEventListener('click', () => {
+        const userData = JSON.parse(localStorage.getItem('userData'));
+
+
+        const data = {
+            experimentTitle: document.getElementById('experiment-title').value,
+            experimentContent: document.getElementById('experiment-content').value,
+            experimentRemarks: document.getElementById('experiment-remark').value,
+        };
+
+        // 使用Axios发送POST请求
+        axios.post('http://localhost:8090/api/publishExperiment', data)
+            .then(response => {
+                console.log('成功:', response);
+            })
+            .catch(error => {
+                console.error('错误:', error);
+            });
+
+
         const experimentList = document.getElementById('experiment-list');
         const title = document.getElementById('experiment-title').value;
         const content = document.getElementById('experiment-content').value;
@@ -590,21 +618,22 @@
 
 
     // Toggle section button functionality
-    document.getElementById('toggle-section-btn').addEventListener('click', () => {
-        const publishSection = document.getElementById('publish-section');
-        const experimentManagementSection = document.getElementById('experiment-management-section');
-        const toggleBtn = document.getElementById('toggle-section-btn');
+    // document.getElementById('toggle-section-btn').addEventListener('click', () => {
+    //     const publishSection = document.getElementById('publish-section');
+    //     const experimentManagementSection = document.getElementById('experiment-management-section');
+    //     const toggleBtn = document.getElementById('toggle-section-btn');
+    //
+    //     if (publishSection.classList.contains('hidden')) {
+    //         publishSection.classList.remove('hidden');
+    //         experimentManagementSection.classList.add('hidden');
+    //         toggleBtn.textContent = '查看题库';
+    //     } else {
+    //         publishSection.classList.add('hidden');
+    //         experimentManagementSection.classList.remove('hidden');
+    //         toggleBtn.textContent = '发布实验';
+    //     }
+    // });
 
-        if (publishSection.classList.contains('hidden')) {
-            publishSection.classList.remove('hidden');
-            experimentManagementSection.classList.add('hidden');
-            toggleBtn.textContent = '查看题库';
-        } else {
-            publishSection.classList.add('hidden');
-            experimentManagementSection.classList.remove('hidden');
-            toggleBtn.textContent = '发布实验';
-        }
-    });
 
     // Add functionality to remark copy buttons
     function addCopyRemarkEvent() {
@@ -828,4 +857,3 @@
         });
     }
 </script>
-</body>
