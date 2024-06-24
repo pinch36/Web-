@@ -857,13 +857,14 @@
                 fetchAllExperiments() {
                     // 发送请求获取所有实验记录
                     const userData = JSON.parse(localStorage.getItem('userData'));
-                    axios.get(`${targetIp}:${targetPort}/api//api/getAllExperiments`, {
+                    axios.get(`${targetIp}:${targetPort}/api/getAllExperiments`, {
                         params: {
                             account: userData.account // 假设 this.account 是你想要传递的参数
                         }
                     })
                         .then(response => {
-                            this.records.push.apply(this.records, response.data);
+                            this.records.push.apply(this.records, response.data.data);
+                            console.log(this.records);
                         })
                         .catch(error => {
                             console.error('Error fetching all experiments:', error);
@@ -880,7 +881,7 @@
                         }
                     })
                         .then(response => {
-                            this.pendingExperiments.push(response.data)
+                            this.pendingExperiments.push(response.data.data)
                         })
                         .catch(error => {
                             console.error('Error fetching pending experiments:', error);
@@ -895,7 +896,7 @@
                             }
                         }) // 替换为实际的后端接口
                         .then(response => {
-                            this.submittedExperiments = response.data;
+                            this.submittedExperiments = response.data.data;
                         })
                         .catch(error => {
                             console.error('Error fetching submitted experiments:',
