@@ -2,322 +2,337 @@
 <html>
 
 <head>
-    <meta charset="UTF-8">
-    <!-- import CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
-    <!-- import Vue before Element -->
-    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
-    <!-- import JavaScript -->
-    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
-    <style>
-        body {
-            background-color: #dde5f4;
-        }
+  <meta charset="UTF-8">
+  <!-- import CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <!-- import Vue before Element -->
+  <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+  <!-- import JavaScript -->
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <style>
+    body {
+      background-color: #dde5f4;
+    }
 
-        * {
-            font-family: "Poppins";
-        }
+    * {
+      font-family: "Poppins";
+    }
 
-        .el-header {
-            color: #333;
-            text-align: center;
-            line-height: 60px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .el-header {
+      color: #333;
+      text-align: center;
+      line-height: 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-        .el-footer {
-            background-color: #dde5f4;
-            color: #333;
-            position: fixed;
-            line-height: 60px;
-            bottom: 0;
-            width: 100%;
-            left: 0;
-            text-align: center;
-        }
+    .el-footer {
+      background-color: #dde5f4;
+      color: #333;
+      position: fixed;
+      line-height: 60px;
+      bottom: 0;
+      width: 100%;
+      left: 0;
+      text-align: center;
+    }
 
-        .el-aside {
-            background-color: #f1f7fe;
-            color: #333;
-            text-align: center;
-            line-height: 90px;
-        }
+    .el-aside {
+      background-color: #f1f7fe;
+      color: #333;
+      text-align: center;
+      line-height: 90px;
+    }
 
-        .el-main {
-            background-color: #f1f7fe;
-            color: #333;
-            text-align: center;
-            line-height: 60px;
-            height: 700px;
-        }
+    .el-main {
+      background-color: #f1f7fe;
+      color: #333;
+      text-align: center;
+      line-height: 60px;
+      height: 700px;
+    }
 
-        .example-pagination-block + .example-pagination-block {
-            margin-top: 10px;
-        }
+    .example-pagination-block+.example-pagination-block {
+      margin-top: 10px;
+    }
 
-        .unread-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .unread-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-        .read-item {
-            display: flex;
-            justify-content: space-between;
-        }
+    .read-item {
+      display: flex;
+      justify-content: space-between;
+    }
 
-        .read-button {
-            margin-left: auto;
-        }
+    .read-button {
+      margin-left: auto;
+    }
 
-        .noticeType {
-            font-size: 16px;
-        }
-    </style>
+    .noticeType {
+      font-size: 16px;
+    }
+  </style>
 </head>
 
 <body>
-<div id="app">
+  <div id="app">
     <el-container>
-        <el-header>
-            <span style="width: 10%"></span>
-            <span style="width: 40%;font-weight: 700;">teaching-system</span>
-            <span>
-          <el-button v-if="isLogin == false" type="primary" round @click="signIn"
-                     style="background-color: #3E4684;">登录</el-button>
+      <el-header>
+        <span style="width: 10%"></span>
+        <span style="width: 40%;font-weight: 700;">teaching-system</span>
+        <span>
+          <el-button v-if="isLogin == false" type="primary" round @click="signIn" style="background-color: #3E4684;">登录
+          </el-button>
           <el-button v-if="isLogin == true" type="primary" round icon="el-icon-user-solid" @click="personalSpace"
-                     style="background-color: #3E4684;">我的</el-button>
+            style="background-color: #3E4684;">我的</el-button>
+          <el-button v-if="isLogin == true" type="primary" round icon="el-icon-user-solid" @click="personalTest"
+            style="background-color: #3E4684;">题库</el-button>
         </span>
-        </el-header>
+      </el-header>
+      <el-container>
+        <el-aside style="width: 20%;">
+          <div>通知</div>
+          <template>
+            <div class="demo-collapse">
+              <el-collapse>
+                <el-collapse-item name="unread">
+                  <template #title>
+                    <span class="noticeType">未读</span>
+                    <el-icon>
+                      <ChatRound />
+                    </el-icon>
+                  </template>
+                  <div class="unread-item" v-if="isLogin == true" v-for="(item, index) in unReadData" :key="index">
+                    {{ item }}
+                    <el-button class="read-button" @click="markAsRead(item)" round type="primary" size="small"
+                      style="background-color: #3E4684;">已读</el-button>
+                  </div>
+                </el-collapse-item>
+                <el-collapse-item name="read">
+                  <template #title>
+                    <span class="noticeType">已读</span>
+                  </template>
+                  <div class="read-item" v-if="isLogin == true" v-for="(item, index) in readData" :key="index">
+                    {{ item }}
+                  </div>
+                </el-collapse-item>
+              </el-collapse>
+            </div>
+          </template>
+        </el-aside>
         <el-container>
-            <el-aside style="width: 20%;">
-                <div>通知</div>
-                <template>
-                    <div class="demo-collapse">
-                        <el-collapse>
-                            <el-collapse-item name="unread">
-                                <template #title>
-                                    <span class="noticeType">未读</span>
-                                    <el-icon>
-                                        <ChatRound/>
-                                    </el-icon>
-                                </template>
-                                <div class="unread-item" v-if="isLogin == true" v-for="(item, index) in unReadData"
-                                     :key="index">
-                                    {{ item }}
-                                    <el-button class="read-button" @click="markAsRead(item)" type="primary" size="small"
-                                               style="background-color: #3E4684;">已读
-                                    </el-button>
-                                </div>
-                            </el-collapse-item>
-                            <el-collapse-item name="read">
-                                <template #title>
-                                    <span class="noticeType">已读</span>
-                                </template>
-                                <div class="read-item" v-if="isLogin == true" v-for="(item, index) in readData"
-                                     :key="index">
-                                    {{ item }}
-                                </div>
-                            </el-collapse-item>
-                        </el-collapse>
-                    </div>
-                </template>
-            </el-aside>
-            <el-container>
-                <el-main>
-                    <el-input v-model="input" placeholder="请输入需要查找的题目" @change="search"></el-input>
-                    <div>
-                        <el-table :data="tableData" style="width: 100%;margin-bottom: 60px;">
-                            <el-table-column prop="testName" label="题目" width="180">
-                            </el-table-column>
-                            <el-table-column prop="id" label="发布人" width="180">
-                            </el-table-column>
-                            <el-table-column prop="description" label="要求">
-                            </el-table-column>
-                            <el-table-column prop="createTime" label="发布时间" width="180">
-                            </el-table-column>
-                            <el-table-column prop="status" label="状态" width="180">
-                                <template v-slot:default="scope">
-                                    <el-icon v-if="scope.row.status === 1 && isLogin == true" name="success"
-                                             style="color: green;font-size: 20px;">
-                                    </el-icon>
-                                    <el-icon v-if="scope.row.status === 2 && isLogin == true" name="info"
-                                             style="color: orange;font-size: 20px;"
-                                             title="消息未读"></el-icon>
-                                </template>
-                            </el-table-column>
-                            <el-table-column prop="testData" label="详情" width="180">
-                                <template v-slot:default="scope">
-                                    <el-button type="primary" size="small" @click="getOneTest(scope.row)"
-                                               style="background-color: #3E4684;">
-                                        <span>详情</span>
-                                    </el-button>
-                                </template>
-                            </el-table-column>
-                        </el-table>
-                    </div>
-                </el-main>
-                <el-footer>福鼎肉片出品精品</el-footer>
-            </el-container>
+          <el-main>
+            <el-input v-model="input" placeholder="请输入需要查找的题目" @change="search"></el-input>
+            <div>
+              <el-table :data="tableData" style="width: 100%;margin-bottom: 60px;">
+                <el-table-column prop="testName" label="题目" width="180">
+                </el-table-column>
+                <el-table-column prop="id" label="发布人" width="180">
+                </el-table-column>
+                <el-table-column prop="description" label="要求">
+                </el-table-column>
+                <el-table-column prop="createTime" label="发布时间" width="180">
+                </el-table-column>
+                <el-table-column prop="status" label="状态" width="180">
+                  <template v-slot:default="scope">
+                    <el-icon v-if="scope.row.status === 1 && isLogin == true" name="success"
+                      style="color: green;font-size: 20px;">
+                    </el-icon>
+                    <el-icon v-if="scope.row.status === 2 && isLogin == true" name="info"
+                      style="color: orange;font-size: 20px;" title="消息未读"></el-icon>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="testData" label="详情" width="180">
+                  <template v-slot:default="scope">
+                    <el-button type="primary" size="small" round @click="getOneTest(scope.row)"
+                      style="background-color: #3E4684;">
+                      <span>详情</span>
+                    </el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </el-main>
+          <el-footer>福鼎肉片出品精品</el-footer>
         </el-container>
+      </el-container>
     </el-container>
-</div>
+  </div>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-    new Vue({
-        el: '#app',
-        data() {
-            return {
-                tableData: [],
-                input: '',
-                unReadData: [],
-                readData: [],
-                isLogin: false,
-                user: {
-                    username: "曹弘文",
-                    role: "student"
-                },
-                userData: {}
-            };
+  new Vue({
+    el: '#app',
+    data() {
+      return {
+        tableData: [],
+        input: '',
+        unReadData: [],
+        readData: [],
+        isLogin: false,
+        user: {
+          username: "曹弘文",
+          role: "student"
         },
-        methods: {
-            search() {
-                axios.get('http://localhost:8090/test/search/' + 'salt' + this.input).then(
-                    response => {
-                        this.tableData = response.data.data;
-                        console.log('成功', response.data);
-                    },
-                    error => {
-                        console.log('失败', error.message);
-                    }
-                )
-            },
-            markAsRead(item) {
-                const statusUpdate = {
-                    username: this.user.username,
-                    description: item
-                };
-                axios.put('http://localhost:8090/notice/update/status', statusUpdate).then(
-                    response => {
-                        console.log('成功', response.data);
-                    },
-                    error => {
-                        console.log('失败', error.message);
-                    }
-                );
-                this.getNoticeUnRead();
-                this.getNoticeRead();
-            },
-            getOneTest(row) {
-                let oneTest;
-                const statusUpdate = {
-                    username: this.user.username,
-                    testName: row.testName
-                };
-                axios.put('http://localhost:8090/test/update/status', statusUpdate).then(
-                    response => {
-                        console.log('成功', response.data);
-                    },
-                    error => {
-                        console.log('失败', error.message);
-                    }
-                );
-                axios.get('http://localhost:8090/test/' + row.testName).then(
-                    response => {
-                        oneTest = response.data.data;
-                        this.$alert(oneTest, '题目详情', {
-                            confirmButtonText: '确定',
-                            type: 'success',
-                        });
-                        console.log('成功', response.data);
-                    },
-                    error => {
-                        console.log('失败', error.message);
-                    }
-                );
-                this.search();
-            },
-            signIn() {
-                window.location.href = '../account/login.html';
-                // alert('跳转到登录页面');
-            },
-            personalSpace() {
-                window.location.href = '../account/personInfo.html';
-                // alert('跳转到个人空间');
-            },
-            getTests() {
-                axios.get('http://localhost:8090/test/all').then(
-                    response => {
-                        this.tableData = response.data.data;
-                        console.log('成功', response.data);
-                    },
-                    error => {
-                        console.log('失败', error.message);
-                    }
-                )
-            },
+        userData: {}
+      };
+    },
+    methods: {
+      search() {
+        axios.get('http://localhost:8090/test/search/' + 'salt' + this.input).then(
+          response => {
+            this.tableData = response.data.data;
+            console.log('成功', response.data);
+          },
+          error => {
+            console.log('失败', error.message);
+          }
+        )
+      },
+      markAsRead(item) {
+        const statusUpdate = {
+          username: this.user.username,
+          description: item
+        };
+        axios.put('http://localhost:8090/notice/update/status', statusUpdate).then(
+          response => {
+            console.log('成功', response.data);
+          },
+          error => {
+            console.log('失败', error.message);
+          }
+        );
+        this.getNoticeUnRead();
+        this.getNoticeRead();
+      },
+      getOneTest(row) {
+        let oneTest;
+        const statusUpdate = {
+          username: this.user.username,
+          testName: row.testName
+        };
+        axios.put('http://localhost:8090/test/update/status', statusUpdate).then(
+          response => {
+            console.log('成功', response.data);
+          },
+          error => {
+            console.log('失败', error.message);
+          }
+        );
+        axios.get('http://localhost:8090/test/' + row.testName).then(
+          response => {
+            oneTest = response.data.data;
+            this.$alert(oneTest, '题目详情', {
+              confirmButtonText: '确定',
+              type: 'success',
+            });
+            console.log('成功', response.data);
+          },
+          error => {
+            console.log('失败', error.message);
+          }
+        );
+        this.search();
+      },
+      signIn() {
+        window.location.href = '../account/login.html';
+        // alert('跳转到登录页面');
+      },
+      personalSpace() {
+        window.location.href = '../account/personInfo.html';
+        // alert('跳转到个人空间');
+      },
+      personalTest() {
+        if (this.user.role == "学生") {
+          window.location.href = '../student/SubmitExp.html';
+        } else {
+          window.location.href = '../student/PublishExp.html';
+        }
+        // alert('跳转到个人题库');
+      },
+      getTests() {
+        axios.get('http://localhost:8090/test/all').then(
+          response => {
+            this.tableData = response.data.data;
+            console.log('成功', response.data);
+          },
+          error => {
+            console.log('失败', error.message);
+          }
+        )
+      },
 
-            getNoticeRead() {
-                const noticeData = {
-                    username: this.user.username,
-                    status: 0
-                };
-                axios.post('http://localhost:8090/notice', noticeData, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                }).then(
-                    response => {
-                        this.readData = response.data.data;
-                        console.log('成功', response.data);
-                    },
-                    error => {
-                        console.log('失败', error.message);
-                    }
-                )
-            },
-            getNoticeUnRead() {
-                const noticeData = {
-                    username: this.user.username,
-                    status: 1
-                };
-                axios.post('http://localhost:8090/notice', noticeData, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                }).then(
-                    response => {
-                        this.unReadData = response.data.data;
-                        console.log('成功', response.data);
-                    },
-                    error => {
-                        console.log('失败', error.message);
-                    }
-                )
-            },
+      getNoticeRead() {
+        const noticeData = {
+          username: this.user.username,
+          status: 0
+        };
+        axios.post('http://localhost:8090/notice', noticeData, {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }).then(
+          response => {
+            this.readData = response.data.data;
+            console.log('成功', response.data);
+          },
+          error => {
+            console.log('失败', error.message);
+          }
+        )
+      },
+      getNoticeUnRead() {
+        const noticeData = {
+          username: this.user.username,
+          status: 1
+        };
+        axios.post('http://localhost:8090/notice', noticeData, {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }).then(
+          response => {
+            this.unReadData = response.data.data;
+            console.log('成功', response.data);
+            return true;
+          },
+          error => {
+            console.log('失败', error.message);
+          }
+        )
+        return false;
+      },
 
 
-        },
-        async beforeMount() {
-            this.userData = JSON.parse(localStorage.getItem('userData'));
-            if (this.userData == null) {
-                this.isLogin = false;
-            } else {
-                this.isLogin = true;
-                this.user.username = this.userData.name;
-                this.user.role = this.userData.role;
-            }
-        },
-        async created() {
-            this.getTests();
-            this.getNoticeRead();
-            this.getNoticeUnRead();
-        },
-
-    })
+    },
+    async beforeMount() {
+      this.userData = JSON.parse(localStorage.getItem('userData'));
+      if (this.userData == null) {
+        this.isLogin = false;
+      } else {
+        this.isLogin = true;
+        this.user.username = this.userData.name;
+        this.user.role = this.userData.role;
+      }
+    },
+    async mounted() {
+      this.timer = setInterval(() => {
+        if (this.getNoticeUnRead()) {
+          this.getTests();
+          this.getNoticeRead();
+        }
+      }, 30000);
+    },
+    async created() {
+      this.getTests();
+      this.getNoticeRead();
+      this.getNoticeUnRead();
+    },
+  })
 </script>
 
 </html>
