@@ -302,11 +302,13 @@
                     response => {
                         this.unReadData = response.data.data;
                         console.log('成功', response.data);
+                        return true;
                     },
                     error => {
                         console.log('失败', error.message);
                     }
                 )
+                return false;
             },
 
 
@@ -317,11 +319,27 @@
                 this.isLogin = false;
             } else {
                 this.isLogin = true;
-                this.user.username = this.userData.name;
+                this.user.username = this.userData.username;
                 this.user.role = this.userData.role;
             }
         },
+        async mounted() {
+            this.timer = setInterval(() => {
+                if (this.getNoticeUnRead()) {
+                    this.getTests();
+                    this.getNoticeRead();
+                }
+            }, 30000);
+        },
         async created() {
+            this.userData = JSON.parse(localStorage.getItem('userData'));
+            if (this.userData == null) {
+                this.isLogin = false;
+            } else {
+                this.isLogin = true;
+                this.user.username = this.userData.username;
+                this.user.role = this.userData.role;
+            }
             this.getTests();
             this.getNoticeRead();
             this.getNoticeUnRead();
