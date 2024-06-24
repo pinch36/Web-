@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查看学生分数</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        body {
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            background: #dde5f4;
+            height: 100vh;
+            margin: 0;
+            overflow-y: auto;
+        }
+
+        .container {
+            width: 800px;
+            background: #f1f7fe;
+            padding: 2em;
+            display: flex;
+            flex-direction: column;
+            border-radius: 30px;
+            box-shadow: 0 0 2em #e6e9f9;
+            gap: 1em;
+            margin-top: 20px;
+        }
+
+        h1 {
+            color: #3B5998;
+            text-align: center;
+        }
+
+        .filter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .filter label {
+            font-weight: bold;
+            color: #4d4d4d;
+        }
+
+        .filter select, .filter input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            outline: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #3B5998;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>学生分数</h1>
+        <div class="filter">
+            <div>
+                <label for="filterStatus">筛选作业:</label>
+                <select id="filterStatus">
+                    <option value="all">全部</option>
+                    <option value="completed">已完成</option>
+                    <option value="incomplete">未完成</option>
+                </select>
+            </div>
+            <div>
+                <label for="searchStudentId">搜索ID:</label>
+                <input type="text" id="searchStudentId" placeholder="输入学生ID">
+                <button id="searchButton">搜索</button>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>学生ID</th>
+                    <th>作业</th>
+                    <th>状态</th>
+                    <th>得分</th>
+                </tr>
+            </thead>
+            <tbody id="scoresList"></tbody>
+        </table>
+    </div>
+
+    <script>
+        async function loadScores(searchStudentId = '', filterStatus = 'all') {
+            const response = await fetch('/api/get_scores');
+            if (response.ok) {
+                let scores = await response.json();
+                if (searchStudentId) {
+                    scores = scores.filter(score => score.studentId.includes(searchStudentId));
+                }
+                if (filterStatus !== 'all') {
+                    const completed = filterStatus === 'completed';
+                    scores = scores.filter(score => score.completed === completed);
+                }
+                displayScores(scores);
+            } else {
+                Swal.fire('错误', '加载学生分数时出错，请稍后再试', 'error');
+            }
+        }
+
+        function displayScores(scores) {
+            const scoresList = document.getElementById('scoresList');
+            scoresList.innerHTML = '';
+
+            scores.forEach(score => {
+                const row = document.createElement('tr');
+
+                const studentIdCell = document.createElement('td');
+                studentIdCell.textContent = score.studentId;
+                row.appendChild(studentIdCell);
+
+                const workNameCell = document.createElement('td');
+                workNameCell.textContent = score.workName;
+                row.appendChild(workNameCell);
+
+                const statusCell = document.createElement('td');
+                statusCell.textContent = score.completed ? '已完成' : '未完成';
+                row.appendChild(statusCell);
+
+                const userScoreCell = document.createElement('td');
+                userScoreCell.textContent = score.userScore;
+                row.appendChild(userScoreCell);
+
+                scoresList.appendChild(row);
+            });
+        }
+
+        document.getElementById('filterStatus').addEventListener('change', () => {
+            const searchStudentId = document.getElementById('searchStudentId').value;
+            loadScores(searchStudentId, document.getElementById('filterStatus').value);
+        });
+
+        document.getElementById('searchButton').addEventListener('click', () => {
+            const searchStudentId = document.getElementById('searchStudentId').value;
+            loadScores(searchStudentId, document.getElementById('filterStatus').value);
+        });
+
+        window.onload = () => loadScores();
+    </script>
+</body>
+
+</html>

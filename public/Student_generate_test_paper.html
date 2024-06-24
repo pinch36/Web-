@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生成试卷</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        body {
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            background: #dde5f4;
+            height: 100vh;
+            margin: 0;
+            overflow-y: auto;
+        }
+
+        .container {
+            width: 600px;
+            background: #f1f7fe;
+            padding: 2em;
+            display: flex;
+            flex-direction: column;
+            border-radius: 30px;
+            box-shadow: 0 0 2em #e6e9f9;
+            gap: 1em;
+            margin-top: 20px;
+        }
+
+        h1 {
+            color: #3B5998;
+            text-align: center;
+        }
+
+        .form-item {
+            margin-bottom: 15px;
+        }
+
+        .form-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #4d4d4d;
+        }
+
+        .form-item input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            outline: none;
+            -moz-appearance: textfield;
+        }
+
+        .form-item input::-webkit-outer-spin-button,
+        .form-item input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        button {
+            background-color: #3e4684;
+            color: white;
+            border: none;
+            margin: 0 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 30px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 0.9em;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>生成试卷</h1>
+        <div class="form-item">
+            <label>单选题数量</label>
+            <input type="number" id="singleCount" min="0" value="0">
+        </div>
+        <div class="form-item">
+            <label>单选题每题分数</label>
+            <input type="number" id="singleScore" min="0" value="0">
+        </div>
+        <div class="form-item">
+            <label>多选题数量</label>
+            <input type="number" id="multipleCount" min="0" value="0">
+        </div>
+        <div class="form-item">
+            <label>多选题每题分数</label>
+            <input type="number" id="multipleScore" min="0" value="0">
+        </div>
+        <div class="form-item">
+            <label>判断题数量</label>
+            <input type="number" id="booleanCount" min="0" value="0">
+        </div>
+        <div class="form-item">
+            <label>判断题每题分数</label>
+            <input type="number" id="booleanScore" min="0" value="0">
+        </div>
+        <div class="form-item">
+            <label>填空题数量</label>
+            <input type="number" id="fillInBlankCount" min="0" value="0">
+        </div>
+        <div class="form-item">
+            <label>填空题每题分数</label>
+            <input type="number" id="fillInBlankScore" min="0" value="0">
+        </div>
+        <div class="form-item">
+            <label>简答题数量</label>
+            <input type="number" id="shortAnswerCount" min="0" value="0">
+        </div>
+        <div class="form-item">
+            <label>简答题每题分数</label>
+            <input type="number" id="shortAnswerScore" min="0" value="0">
+        </div>
+        <button id="generateButton">生成试卷</button>
+        <button id="viewLastTestButton">查看上次试卷</button>
+    </div>
+
+    <script>
+        let db;
+        const request = indexedDB.open("webDatabase_" + 2022150110, 2);
+
+        request.onsuccess = function(event) {
+            db = event.target.result;
+        };
+
+        request.onerror = function(event) {
+            console.error("Database error: " + event.target.errorCode);
+        };
+
+        document.getElementById('generateButton').addEventListener('click', () => {
+            const singleCount = parseInt(document.getElementById('singleCount').value);
+            const singleScore = parseInt(document.getElementById('singleScore').value);
+            const multipleCount = parseInt(document.getElementById('multipleCount').value);
+            const multipleScore = parseInt(document.getElementById('multipleScore').value);
+            const booleanCount = parseInt(document.getElementById('booleanCount').value);
+            const booleanScore = parseInt(document.getElementById('booleanScore').value);
+            const fillInBlankCount = parseInt(document.getElementById('fillInBlankCount').value);
+            const fillInBlankScore = parseInt(document.getElementById('fillInBlankScore').value);
+            const shortAnswerCount = parseInt(document.getElementById('shortAnswerCount').value);
+            const shortAnswerScore = parseInt(document.getElementById('shortAnswerScore').value);
+
+            const questionCounts = {
+                single: { count: singleCount, score: singleScore },
+                multiple: { count: multipleCount, score: multipleScore },
+                boolean: { count: booleanCount, score: booleanScore },
+                'fill-in-the-blank': { count: fillInBlankCount, score: fillInBlankScore },
+                'short-answer': { count: shortAnswerCount, score: shortAnswerScore }
+            };
+
+            const transaction = db.transaction(["questionStore"], "readonly");
+            const objectStore = transaction.objectStore("questionStore");
+            const request = objectStore.getAll();
+
+            request.onsuccess = function(event) {
+                const questions = event.target.result;
+                const testPaper = [];
+
+                Object.keys(questionCounts).forEach(type => {
+                    const filteredQuestions = questions.filter(q => q.type === type);
+                    const selectedQuestions = filteredQuestions.sort(() => 0.5 - Math.random()).slice(0, questionCounts[type].count);
+                    selectedQuestions.forEach(q => {
+                        q.score = questionCounts[type].score;
+                        testPaper.push(q);
+                    });
+                });
+
+                // 保存试卷到本地存储
+                localStorage.setItem('testPaper', JSON.stringify(testPaper));
+
+                // 跳转到新页面
+                window.location.href = 'Student_test_paper.html';
+            };
+
+            request.onerror = function(event) {
+                console.error("Load error: " + event.target.errorCode);
+                Swal.fire('错误', '生成试卷时出错', 'error');
+            };
+        });
+
+        document.getElementById('viewLastTestButton').addEventListener('click', () => {
+            window.location.href = 'Student_test_paper.html';
+        });
+    </script>
+</body>
+
+</html>

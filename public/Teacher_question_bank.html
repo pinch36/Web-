@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>题库</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        body {
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            background: #dde5f4;
+            height: 100vh;
+            margin: 0;
+            overflow-y: auto;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 1200px;
+            background: #f1f7fe;
+            padding: 2em;
+            display: flex;
+            flex-direction: column;
+            border-radius: 30px;
+            box-shadow: 0 0 2em #e6e9f9;
+            gap: 1em;
+            margin-top: 20px;
+        }
+
+        h1 {
+            color: #3B5998;
+            text-align: center;
+        }
+
+        .filter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .filter label {
+            font-weight: bold;
+            color: #4d4d4d;
+        }
+
+        .filter select {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            outline: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #3B5998;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .delete-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>题库</h1>
+        <div class="filter">
+            <label for="filterType">筛选题型:</label>
+            <select id="filterType">
+                <option value="all">全部</option>
+                <option value="single">单选题</option>
+                <option value="multiple">多选题</option>
+                <option value="boolean">判断题</option>
+                <option value="fill-in-the-blank">填空题</option>
+                <option value="short-answer">简答题</option>
+            </select>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>内容</th>
+                    <th>类型</th>
+                    <th>选项</th>
+                    <th>答案</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="questionList"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let db;
+        const filterTypeSelect = document.getElementById('filterType');
+
+        const request = indexedDB.open("webDatabase_" + 2022150110, 2);
+
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            loadQuestions();
+        };
+
+        request.onerror = function(event) {
+            console.error("Database error: " + event.target.errorCode);
+        };
+
+        function loadQuestions(filterType = 'all') {
+            const transaction = db.transaction(["questionStore"], "readonly");
+            const objectStore = transaction.objectStore("questionStore");
+            const request = objectStore.getAll();
+
+            request.onsuccess = function(event) {
+                displayQuestions(event.target.result, filterType);
+            };
+
+            request.onerror = function(event) {
+                console.error("Load error: " + event.target.errorCode);
+            };
+        }
+
+        function displayQuestions(data, filterType) {
+            const questionList = document.getElementById("questionList");
+            questionList.innerHTML = "";
+
+            data.forEach((item) => {
+                if (filterType === 'all' || item.type === filterType) {
+                    const row = document.createElement("tr");
+
+                    const contentCell = document.createElement("td");
+                    contentCell.textContent = item.content;
+                    row.appendChild(contentCell);
+
+                    const typeCell = document.createElement("td");
+                    typeCell.textContent = item.type;
+                    row.appendChild(typeCell);
+
+                    const optionsCell = document.createElement("td");
+                    optionsCell.textContent = item.options ? item.options.join(", ") : "无";
+                    row.appendChild(optionsCell);
+
+                    const answerCell = document.createElement("td");
+                    answerCell.textContent = item.answer;
+                    row.appendChild(answerCell);
+
+                    const actionCell = document.createElement("td");
+                    const deleteButton = document.createElement("button");
+                    deleteButton.textContent = "删除";
+                    deleteButton.className = "delete-btn";
+                    deleteButton.onclick = function() {
+                        deleteQuestion(item.id);
+                    };
+                    actionCell.appendChild(deleteButton);
+                    row.appendChild(actionCell);
+
+                    questionList.appendChild(row);
+                }
+            });
+        }
+
+        function deleteQuestion(id) {
+            if (confirm("确认删除此题目吗？")) {
+                const transaction = db.transaction(["questionStore"], "readwrite");
+                const objectStore = transaction.objectStore("questionStore");
+                const request = objectStore.delete(id);
+
+                request.onsuccess = function() {
+                    loadQuestions(filterTypeSelect.value);
+                };
+
+                request.onerror = function(event) {
+                    console.error("Delete error: " + event.target.errorCode);
+                };
+            }
+        }
+
+        filterTypeSelect.addEventListener('change', function() {
+            loadQuestions(this.value);
+        });
+    </script>
+</body>
+</html>

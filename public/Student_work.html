@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作业列表</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        body {
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            background: #dde5f4;
+            height: 100vh;
+            margin: 0;
+            overflow-y: auto;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 1200px;
+            background: #f1f7fe;
+            padding: 2em;
+            display: flex;
+            flex-direction: column;
+            border-radius: 30px;
+            box-shadow: 0 0 2em #e6e9f9;
+            gap: 1em;
+            margin-top: 20px;
+        }
+
+        h1 {
+            color: #3B5998;
+            text-align: center;
+        }
+
+        .filter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .filter label {
+            font-weight: bold;
+            color: #4d4d4d;
+        }
+
+        .filter select, .filter input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            outline: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #3B5998;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>作业列表</h1>
+        <div class="filter">
+            <div>
+                <label for="filterType">筛选作业:</label>
+                <select id="filterType">
+                    <option value="all">全部</option>
+                    <option value="completed">已完成</option>
+                    <option value="incomplete">未完成</option>
+                </select>
+            </div>
+            <div>
+                <label for="searchStudentId">搜索ID:</label>
+                <input type="text" id="searchStudentId" placeholder="输入学生ID">
+                <button id="searchButton">搜索</button>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>作业</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="workList"></tbody>
+        </table>
+    </div>
+
+    <script>
+        async function loadWorks(searchStudentId = '') {
+            const response = await fetch('/api/get_published_test_papers');
+            if (response.ok) {
+                let works = await response.json();
+                if (searchStudentId) {
+                    works = works.filter(work => work.studentId.includes(searchStudentId));
+                }
+                displayWorks(works);
+            } else {
+                Swal.fire('错误', '加载作业时出错，请稍后再试', 'error');
+            }
+        }
+
+        function displayWorks(works) {
+            const workList = document.getElementById('workList');
+            workList.innerHTML = '';
+
+            works.forEach(work => {
+                const row = document.createElement('tr');
+
+                const workNameCell = document.createElement('td');
+                workNameCell.textContent = work.title || '未命名作业';
+                row.appendChild(workNameCell);
+
+                const statusCell = document.createElement('td');
+                statusCell.textContent = work.completed ? '已完成' : '未完成';
+                row.appendChild(statusCell);
+
+                const actionCell = document.createElement('td');
+                const viewButton = document.createElement('button');
+                viewButton.textContent = '查看';
+                viewButton.onclick = function() {
+                    viewWork(work.id);
+                };
+                actionCell.appendChild(viewButton);
+                row.appendChild(actionCell);
+
+                workList.appendChild(row);
+            });
+        }
+
+        function viewWork(workId) {
+            localStorage.setItem('currentWorkId', workId);
+            window.location.href = 'Student_test_paper.html';
+        }
+
+        document.getElementById('filterType').addEventListener('change', () => {
+            loadWorks();
+        });
+
+        document.getElementById('searchButton').addEventListener('click', () => {
+            const searchStudentId = document.getElementById('searchStudentId').value;
+            loadWorks(searchStudentId);
+        });
+
+        window.onload = loadWorks;
+    </script>
+</body>
+
+</html>

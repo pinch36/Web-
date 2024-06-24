@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线测试系统</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        body {
+            user-select: none;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #dde5f4;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            width: 500px;
+            background: #f1f7fe;
+            padding: 2em;
+            display: flex;
+            flex-direction: column;
+            border-radius: 30px;
+            box-shadow: 0 0 2em #e6e9f9;
+            gap: 1em;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #fff;
+            background-color: #3B5998;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-bottom: 0;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+            color: #4d4d4d;
+        }
+
+        select,
+        input[type="text"],
+        textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        ul {
+            padding-left: 0;
+            list-style: none;
+        }
+
+        li {
+            background: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background-color: #3e4684;
+            color: white;
+            border: none;
+            margin: 0 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+
+        .option-buttons {
+            display: flex;
+            justify-content: space-between;
+            text-align: center;
+        }
+
+        .option-buttons button {
+            flex: 1;
+            margin: 5px;
+            border-radius: 20px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 40px;
+        }
+
+        button.selected {
+            background-color: #A6B1E1;
+            color: white;
+        }
+
+        #generateTestPaperButton {
+            background-color: #A6B1E1;
+            color: white;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 0.9em;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>创建问题</h2>
+        <form id="createQuestionForm">
+            <div>
+                <label>类型</label>
+                <select id="type" required>
+                    <option value="single">单选题</option>
+                    <option value="multiple">多选题</option>
+                    <option value="boolean">判断题</option>
+                    <option value="fill-in-the-blank">填空题</option>
+                    <option value="short-answer">简答题</option>
+                </select>
+                <span class="error-message" id="typeError"></span>
+            </div>
+            <div>
+                <label>问题</label>
+                <input type="text" id="question" required>
+                <span class="error-message" id="questionError"></span>
+            </div>
+            <div id="optionsContainer">
+                <label>选项</label>
+                <input type="text" id="optionA" placeholder="选项 A" required>
+                <input type="text" id="optionB" placeholder="选项 B" required>
+                <input type="text" id="optionC" placeholder="选项 C" required>
+                <input type="text" id="optionD" placeholder="选项 D" required>
+                <span class="error-message" id="optionsError"></span>
+            </div>
+            <div>
+                <label>答案</label>
+                <div class="option-buttons" id="answerButtons">
+                    <button type="button" value="A">A</button>
+                    <button type="button" value="B">B</button>
+                    <button type="button" value="C">C</button>
+                    <button type="button" value="D">D</button>
+                    <button type="button" value="True" style="display: none;">正确</button>
+                    <button type="button" value="False" style="display: none;">错误</button>
+                </div>
+                <input type="text" id="answer" style="display: none;" required>
+                <span class="error-message" id="answerError"></span>
+            </div>
+        </form>
+        <button type="submit" id="submitQuestionButton">创建问题</button>
+        <button id="generateTestPaperButton">生成试卷</button>
+        <button id="checkQuestionBankButton">检查题库</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        let db;
+        const typeSelect = document.getElementById('type');
+        const questionInput = document.getElementById('question');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const answerButtons = document.getElementById('answerButtons');
+        const answerInput = document.getElementById('answer');
+        const booleanButtons = document.querySelectorAll('button[value="True"], button[value="False"]');
+        const choiceButtons = document.querySelectorAll('button[value="A"], button[value="B"], button[value="C"], button[value="D"]');
+        const optionAInput = document.getElementById('optionA');
+        const optionBInput = document.getElementById('optionB');
+        const optionCInput = document.getElementById('optionC');
+        const optionDInput = document.getElementById('optionD');
+        const typeError = document.getElementById('typeError');
+        const questionError = document.getElementById('questionError');
+        const optionsError = document.getElementById('optionsError');
+        const answerError = document.getElementById('answerError');
+
+        // 创建数据库
+        function createDatabase() {
+            const request = indexedDB.open("webDatabase_" + 2022150110, 2);
+
+            request.onsuccess = function(event) {
+                db = event.target.result;
+                console.log("Database opened successfully.");
+            };
+
+            request.onerror = function(event) {
+                console.error("Database error: " + event.target.errorCode);
+            };
+
+            request.onupgradeneeded = function(event) {
+                db = event.target.result;
+                console.log("onupgradeneeded triggered.");
+
+                if (!db.objectStoreNames.contains("questionStore")) {
+                    let objectStore = db.createObjectStore("questionStore", { keyPath: "id", autoIncrement: true });
+                    objectStore.createIndex("content", "content", { unique: false });
+                    objectStore.createIndex("type", "type", { unique: false });
+                    objectStore.createIndex("tags", "tags", { unique: false });
+                    objectStore.createIndex("answer", "answer", { unique: false });
+                    console.log("Object store 'questionStore' created.");
+                }
+            };
+        }
+
+        createDatabase();
+
+        typeSelect.addEventListener('change', function() {
+            // 清空输入字段和按钮选择
+            questionInput.value = '';
+            answerInput.value = '';
+            optionAInput.value = '';
+            optionBInput.value = '';
+            optionCInput.value = '';
+            optionDInput.value = '';
+            document.querySelectorAll('#answerButtons button').forEach(btn => btn.classList.remove('selected'));
+
+            // 清空错误消息
+            typeError.textContent = '';
+            questionError.textContent = '';
+            optionsError.textContent = '';
+            answerError.textContent = '';
+
+            optionsContainer.style.display = 'none';
+            answerButtons.style.display = 'none';
+            booleanButtons.forEach(button => button.style.display = 'none');
+            choiceButtons.forEach(button => button.style.display = 'none');
+            answerInput.style.display = 'none';
+
+            if (this.value === 'single' || this.value === 'multiple') {
+                optionsContainer.style.display = 'block';
+                answerButtons.style.display = 'flex';
+                choiceButtons.forEach(button => button.style.display = 'flex');
+            } else if (this.value === 'boolean') {
+                answerButtons.style.display = 'flex';
+                booleanButtons.forEach(button => button.style.display = 'flex');
+            } else {
+                answerInput.style.display = 'block';
+            }
+        });
+
+        document.querySelectorAll('#answerButtons button').forEach(button => {
+            button.addEventListener('click', function() {
+                const buttons = document.querySelectorAll('#answerButtons button');
+
+                if (typeSelect.value === 'single' || typeSelect.value === 'boolean') {
+                    answerInput.value = this.value;
+                    buttons.forEach(btn => btn.classList.remove('selected'));
+                    this.classList.add('selected');
+                } else {
+                    let answers = answerInput.value.split(',').filter(v => v);
+                    if (answers.includes(this.value)) {
+                        answers = answers.filter(v => v !== this.value);
+                        this.classList.remove('selected');
+                    } else {
+                        answers.push(this.value);
+                        this.classList.add('selected');
+                    }
+                    answerInput.value = answers.join(',');
+                }
+            });
+        });
+
+        document.getElementById('submitQuestionButton').addEventListener('click', (e) => {
+            e.preventDefault();
+            const type = typeSelect.value;
+            const question = questionInput.value;
+            const optionA = optionAInput.value;
+            const optionB = optionBInput.value;
+            const optionC = optionCInput.value;
+            const optionD = optionDInput.value;
+            const answer = answerInput.value;
+
+            let hasError = false;
+
+            if (!question) {
+                questionError.textContent = '问题不能为空';
+                hasError = true;
+            } else {
+                questionError.textContent = '';
+            }
+
+            if ((type === 'single' || type === 'multiple') && (!optionA || !optionB || !optionC || !optionD)) {
+                optionsError.textContent = '选项不能为空';
+                hasError = true;
+            } else {
+                optionsError.textContent = '';
+            }
+
+            if (!answer) {
+                answerError.textContent = '答案不能为空';
+                hasError = true;
+            } else {
+                answerError.textContent = '';
+            }
+
+            if (hasError) {
+                Swal.fire('错误', '请检查表单中的错误并修正', 'error');
+                return;
+            }
+
+            let options = [];
+            if (type === 'single' || type === 'multiple') {
+                options = [optionA, optionB, optionC, optionD];
+            }
+
+            const transaction = db.transaction(["questionStore"], "readwrite");
+            const objectStore = transaction.objectStore("questionStore");
+            const request = objectStore.add({ type, content: question, options, answer });
+
+            request.onsuccess = function() {
+                Swal.fire('成功', '问题已创建', 'success');
+                questionInput.value = '';
+                answerInput.value = '';
+                optionAInput.value = '';
+                optionBInput.value = '';
+                optionCInput.value = '';
+                optionDInput.value = '';
+                document.querySelectorAll('#answerButtons button').forEach(btn => btn.classList.remove('selected'));
+                questionError.textContent = '';
+                answerError.textContent = '';
+                optionsError.textContent = '';
+            };
+
+            request.onerror = function(event) {
+                Swal.fire('错误', '创建问题时出错', 'error');
+            };
+        });
+
+        document.getElementById('generateTestPaperButton').addEventListener('click', () => {
+            window.location.href = 'Teacher_generate_test_paper.html';
+        });
+
+        document.getElementById('checkQuestionBankButton').addEventListener('click', () => {
+            window.location.href = 'Teacher_question_bank.html';
+        });
+
+        document.getElementById('viewWorkButton').addEventListener('click', () => {
+            window.location.href = 'Teacher_work.html';
+        });
+
+        // 初始化表单，设置为单选题
+        typeSelect.value = 'single';
+        optionsContainer.style.display = 'block';
+        answerButtons.style.display = 'flex';
+        choiceButtons.forEach(button => button.style.display = 'flex');
+    </script>
+</body>
+
+</html>
