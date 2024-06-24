@@ -78,15 +78,20 @@
         }
 
         .status-icon {
-            position: absolute; /* 绝对定位 */
-            right: -30px; /* 向右移动 */
-            top: 50%; /* 垂直居中 */
-            transform: translateY(-50%); /* 修正垂直居中 */
+            position: absolute;
+            /* 绝对定位 */
+            right: -30px;
+            /* 向右移动 */
+            top: 50%;
+            /* 垂直居中 */
+            transform: translateY(-50%);
+            /* 修正垂直居中 */
             color: green;
             font-size: 30px;
         }
 
-        .experiment-record div {}
+        .experiment-record div {
+        }
 
         .actions {
             display: flex;
@@ -130,7 +135,7 @@
             border-radius: 4px;
             margin-left: 10px;
         }
-        
+
         .search-container button:hover {
             background-color: #2d3661;
         }
@@ -175,219 +180,282 @@
 </head>
 
 <body>
-    <div id="app" class="container">
-        <header>
-            <div>教师实验批改系统</di>
-        </header>
-        <main>
-            <h2>学生实验提交情况</h2>
+<div id="app" class="container">
+    <header>
+        <div>教师实验批改系统</di>
+    </header>
+    <main>
+        <h2>学生实验提交情况</h2>
 
-            <div class="action-bar">
-                <div class="generateGrades">
-                    <button @click="exportGrades">导出成绩</button>
+        <div class="action-bar">
+            <div class="generateGrades">
+                <button @click="exportGrades">导出成绩</button>
+            </div>
+            <div class="search-container">
+                <input type="text" v-model="searchQuery" placeholder="输入实验名称或学生ID搜索...">
+                <button @click="filterExperiments">搜索</button>
+            </div>
+        </div>
+
+
+        <div id="experiment-records">
+            <div v-for="record in records" :key="record.id" class="experiment-record">
+                <div>
+                    <div style="font-weight: bold;">学生账号:</div>
+                    <div style="font-weight:lighter">{{ record.studentAccount }}</div>
                 </div>
-                <div class="search-container">
-                    <input type="text" v-model="searchQuery" placeholder="输入实验名称或学生ID搜索...">
-                    <button @click="filterExperiments">搜索</button>
+                <div>
+                    <div style="font-weight: bold;">实验标题:</div>
+                    <div style="font-weight:lighter">{{ record.experimentTitle }}</div>
+                </div>
+                <div>
+                    <div style="font-weight: bold;">提交时间:</div>
+                    <div style="font-weight:lighter">{{ record.submissionTime }}</div>
+                </div>
+                <div class="actions">
+                    <button @click="jumpInterface(record)">查看详情</button>
+                    <button @click="evaluateCode(record)" style="background-color:#A6B1E1 ;">批改作业</button>
+                    <ion-icon v-if="record.status === 2" name="checkmark-circle-outline" class="status-icon">
+                    </ion-icon>
                 </div>
             </div>
+        </div>
+    </main>
+    <!-- <footer>
+        <div>版权所有：web小组</div>
+        <div>联系电话：17764979389</div>
+    </footer> -->
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+<script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 
 
-            <div id="experiment-records">
-                <div v-for="record in records" :key="record.id" class="experiment-record">
-                    <div>
-                        <div style="font-weight: bold;">学生账号:</div>
-                        <div style="font-weight:lighter">{{ record.studentAccount }}</div>
-                    </div>
-                    <div>
-                        <div style="font-weight: bold;">实验标题:</div>
-                        <div style="font-weight:lighter">{{ record.experimentTitle }}</div>
-                    </div>
-                    <div>
-                        <div style="font-weight: bold;">提交时间:</div>
-                        <div style="font-weight:lighter">{{ record.submissionTime }}</div>
-                    </div>
-                    <div class="actions">
-                        <button @click="jumpInterface(record)">查看详情</button>
-                        <button @click="evaluateCode(record)" style="background-color:#A6B1E1 ;">批改作业</button>
-                        <ion-icon v-if="record.status === 2" name="checkmark-circle-outline"
-                            class="status-icon"></ion-icon>
-                    </div>
-                </div>
-            </div>
-        </main>
-        <!-- <footer>
-            <div>版权所有：web小组</div>
-            <div>联系电话：17764979389</div>
-        </footer> -->
-    </div>
+<script>
+    const targetIp = 'http://127.0.0.1'; // 目标 IP
+    const targetPort = '8090'; // 目标端口
+    const apiKey = 'YOUR_OPENAI_API_KEY'; // 替换为你的 OpenAI API 密钥
+    const apiUrl = 'https://api.openai.com/v1/completions'; // 使用正确的 API 端点
+    new Vue({
+        el: '#app',
+        data: {
+            currentTab: 'submit',
+            selectedExperiment: '',
+            experimentContent: '这里是实验内容。',
+            experimentRemarks: '这里是备注内容。',
+            pendingExperiments: [],
+            submittedExperiments: [],
+            searchQuery: '', // 添加搜索查询数据
+            records: [ // 添加实验记录
+                {
+                    id: 1,
+                    studentAccount: 'student1',
+                    experimentTitle: '实验1',
+                    submissionTime: '2024-06-21',
+                    experimentContent: '实验内容1',
+                    code: '123'
+                },
+                {
+                    id: 2,
+                    studentAccount: 'student2',
+                    experimentTitle: '实验2',
+                    submissionTime: '2024-06-20',
+                    experimentContent: '实验内容2',
+                },
+                //
+                {
+                    id: 2,
+                    studentAccount: 'student2',
+                    experimentTitle: '实验2',
+                    submissionTime: '2024-06-20',
+                    status: 2,
+                    experimentContent: '实验内容2',
+                },
+                {
+                    id: 2,
+                    studentAccount: 'student2',
+                    experimentTitle: '实验2',
+                    submissionTime: '2024-06-20',
+                    experimentContent: '实验内容2',
+                },
+                {
+                    id: 2,
+                    studentAccount: 'student2',
+                    experimentTitle: '实验2',
+                    submissionTime: '2024-06-20',
+                    experimentContent: '实验内容2',
+                    codeReview: '很好'
+                },
+                {
+                    id: 2,
+                    studentAccount: 'student2',
+                    experimentTitle: '实验2',
+                    submissionTime: '2024-06-20',
+                    experimentContent: '实验内容2',
+                    codeReview: '很好'
+                },
+                {
+                    id: 2,
+                    studentAccount: 'student2',
+                    experimentTitle: '实验2',
+                    submissionTime: '2024-06-20',
+                    experimentContent: '实验内容2',
+                    codeReview: '很好'
+                },
+                {
+                    id: 2,
+                    studentAccount: 'student2',
+                    experimentTitle: '实验2',
+                    submissionTime: '2024-06-20',
+                    experimentContent: '实验内容2',
+                    codeReview: '很好'
+                },
+                {
+                    id: 2,
+                    studentAccount: 'student2',
+                    experimentTitle: '实验2',
+                    submissionTime: '2024-06-20',
+                    experimentContent: '实验内容2',
+                    codeReview: '很好'
+                },
 
-    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
-    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
-
-
-    <script>
-        new Vue({
-            el: '#app',
-            data: {
-                currentTab: 'submit',
-                selectedExperiment: '',
-                experimentContent: '这里是实验内容。',
-                experimentRemarks: '这里是备注内容。',
-                pendingExperiments: [],
-                submittedExperiments: [],
-                searchQuery: '', // 添加搜索查询数据
-                records: [ // 添加实验记录
-                    {
-                        id: 1,
-                        studentAccount: 'student1',
-                        experimentTitle: '实验1',
-                        submissionTime: '2024-06-21',
-                        experimentContent: '实验内容1',
-                    },
-                    {
-                        id: 2,
-                        studentAccount: 'student2',
-                        experimentTitle: '实验2',
-                        submissionTime: '2024-06-20',
-                        experimentContent: '实验内容2',
-                    },
-                    // 
-                    {
-                        id: 2,
-                        studentAccount: 'student2',
-                        experimentTitle: '实验2',
-                        submissionTime: '2024-06-20',
-                        status: 2,
-                        experimentContent: '实验内容2',
-                    },
-                    {
-                        id: 2,
-                        studentAccount: 'student2',
-                        experimentTitle: '实验2',
-                        submissionTime: '2024-06-20',
-                        experimentContent: '实验内容2',
-                    },
-                    {
-                        id: 2,
-                        studentAccount: 'student2',
-                        experimentTitle: '实验2',
-                        submissionTime: '2024-06-20',
-                        experimentContent: '实验内容2',
-                        codeReview: '很好'
-                    }
-                ]
+            ]
+        },
+        mounted() {
+            this.fetchExperimentRecords();
+        },
+        methods: {
+            fetchExperimentRecords() {
+                axios.get('${targetIp}:${targetPort}/api/getExperimentRecords')
+                    .then(response => {
+                        // 将返回的数据添加到 records 数组中
+                        this.records.push(...response.data);
+                    })
+                    .catch(error => {
+                        console.error('获取实验记录失败:', error);
+                    });
             },
-            methods: {
-                jumpInterface(record) {
-                    const url = `ViewDetails.html?record=${encodeURIComponent(JSON.stringify(record))}`;
-                    window.location.href = url;
-                },
+            jumpInterface(record) {
+                const url = `ViewDetails.html?record=${encodeURIComponent(JSON.stringify(record))}`;
+                window.location.href = url;
+            },
 
-                filterExperiments() {
-                    const query = this.searchQuery.toLowerCase();
-                    this.records = this.records.filter(record => {
-                        return record.experimentTitle.toLowerCase().includes(query) ||
-                            record.studentAccount.toLowerCase().includes(query);
-                    });
-                },
+            filterExperiments() {
+                const query = this.searchQuery.toLowerCase();
+                this.records = this.records.filter(record => {
+                    return record.experimentTitle.toLowerCase().includes(query) ||
+                        record.studentAccount.toLowerCase().includes(query);
+                });
+            },
 
-                //导出成绩
-                exportGrades() {
-                    this.evaluateAllExperiments().then(() => {
-                        const ws_data = [
-                            ["学生账号", "实验标题", "提交时间", "代码评价", "评分"]
-                        ];
+            //导出成绩
+            exportGrades() {
+                this.evaluateAllExperiments().then(() => {
+                    const ws_data = [
+                        ["学生账号", "实验标题", "提交时间", "代码评价", "评分"]
+                    ];
 
-                        this.records.forEach(record => {
-                            ws_data.push([record.studentAccount, record.experimentTitle, record
-                                .submissionTime, record.codeReview, record.score
-                            ]);
-                        });
-
-                        const wb = XLSX.utils.book_new();
-                        const ws = XLSX.utils.aoa_to_sheet(ws_data);
-                        XLSX.utils.book_append_sheet(wb, ws, "成绩");
-                        XLSX.writeFile(wb, "实验成绩.xlsx");
-                    }).catch(error => {
-                        console.error('批改实验时发生错误:', error);
-                        alert('批改实验时发生错误。');
+                    this.records.forEach(record => {
+                        ws_data.push([record.studentAccount, record.experimentTitle, record
+                            .submissionTime, record.codeReview, record.score
+                        ]);
                     });
 
-                },
-                viewDetails(record) {
-                    alert(`查看详情: ${record.experimentTitle}`);
-                },
+                    const wb = XLSX.utils.book_new();
+                    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+                    XLSX.utils.book_append_sheet(wb, ws, "成绩");
+                    XLSX.writeFile(wb, "实验成绩.xlsx");
+                }).catch(error => {
+                    console.error('批改实验时发生错误:', error);
+                    alert('批改实验时发生错误。');
+                });
+
+            },
+            viewDetails(record) {
+                alert(`查看详情: ${record.experimentTitle}`);
+            },
 
 
+            evaluateCode(record) {
+                this.$set(record, 'status', 2);
 
-                evaluateCode(record) {
-                    this.$set(record, 'status', 2);
+                //gpt4评测
+                const prompt =
+                    `Analyze the following code submitted by a student for the experiment titled "${record.experimentTitle}":\n\n${record.experimentContent}`;
 
-                    //gpt4评测
-                    const prompt =
-                        `Analyze the following code submitted by a student for the experiment titled "${record.experimentTitle}":\n\n${record.experimentContent}`;
+                axios.post('https://api.openai.com/v1/engines/davinci-codex/completions', {
+                    prompt: prompt,
+                    max_tokens: 500,
+                    temperature: 0.5
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer YOUR_OPENAI_API_KEY`
+                    }
+                }).then(response => {
+                    alert(`分析结果: ${response.data.choices[0].text}`);
+                    record.codeReview = response.data.choices[0].text
+                }).catch(error => {
+                    console.error(error);
+                    // alert('分析代码时发生错误。');
+                });
 
-                    axios.post('https://api.openai.com/v1/engines/davinci-codex/completions', {
-                        prompt: prompt,
-                        max_tokens: 500,
-                        temperature: 0.5
-                    }, {
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer YOUR_OPENAI_API_KEY`
-                        }
-                    }).then(response => {
-                        alert(`分析结果: ${response.data.choices[0].text}`);
-                        record.codeReview = response.data.choices[0].text
-                    }).catch(error => {
+
+                //智能批改
+                axios.post('${targetIp}:${targetPort}/api/evaluate-code', {
+                    code: record.experimentContent
+                })
+                    .then(response => {
+                        alert(`评测结果: ${response.data.result}`);
+                        record.goal = response.data.result
+                    })
+                    .catch(error => {
                         console.error(error);
-                        alert('分析代码时发生错误。');
+                        // alert('评测代码时发生错误。');
                     });
 
 
-
-                    //智能批改
-                    axios.post('/api/evaluate-code', {
-                            code: record.experimentContent
-                        })
-                        .then(response => {
-                            alert(`评测结果: ${response.data.result}`);
-                            record.goal = response.data.result
-                        })
-                        .catch(error => {
-                            console.error(error);
-                            alert('评测代码时发生错误。');
-                        });
-
-                    record.status = 2;
-
-                },
-
-                evaluateAllExperiments() {
-                    const evaluationPromises = this.records.map(record => {
-                        return this.evaluateCode(record);
+                axios.post('${targetIp}:${targetPort}/api/correctionAndUpdate', {
+                    studentAccount: record.studentAccount,
+                    experimentTitle: record.experimentTitle,
+                    status: 2
+                })
+                    .then(response => {
+                        console.log('实验状态更新成功:', response.data);
+                    })
+                    .catch(error => {
+                        console.error('实验状态更新失败:', error);
                     });
 
-                    return Promise.all(evaluationPromises);
-                },
+                record.status = 2;
+                record.status = 2;
+
+            },
+
+            evaluateAllExperiments() {
+                const evaluationPromises = this.records.map(record => {
+                    return this.evaluateCode(record);
+                });
+
+                return Promise.all(evaluationPromises);
+            },
 
 
-            }
-        });
+        }
+    });
 
-        //禁止缩放
-        window.addEventListener('wheel', function (e) {
-            if (e.ctrlKey) {
-                e.preventDefault();
-            }
-        }, {
-            passive: false
-        });
-    </script>
+    //禁止缩放
+    window.addEventListener('wheel', function (e) {
+        if (e.ctrlKey) {
+            e.preventDefault();
+        }
+    }, {
+        passive: false
+    });
+</script>
 </body>
 
 </html>
