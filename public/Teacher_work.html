@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>查看学生分数</title>
+    <title>作业列表</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         body {
@@ -19,7 +19,8 @@
         }
 
         .container {
-            width: 800px;
+            width: 80%;
+            max-width: 1200px;
             background: #f1f7fe;
             padding: 2em;
             display: flex;
@@ -47,7 +48,8 @@
             color: #4d4d4d;
         }
 
-        .filter select, .filter input {
+        .filter select,
+        .filter input {
             padding: 10px;
             border-radius: 5px;
             border: 1px solid #ddd;
@@ -59,11 +61,14 @@
             border-collapse: collapse;
         }
 
-        table, th, td {
+        table,
+        th,
+        td {
             border: 1px solid #ddd;
         }
 
-        th, td {
+        th,
+        td {
             padding: 10px;
             text-align: left;
         }
@@ -81,11 +86,11 @@
 
 <body>
     <div class="container">
-        <h1>学生分数</h1>
+        <h1>作业列表</h1>
         <div class="filter">
             <div>
-                <label for="filterStatus">筛选作业:</label>
-                <select id="filterStatus">
+                <label for="filterType">筛选作业:</label>
+                <select id="filterType">
                     <option value="all">全部</option>
                     <option value="completed">已完成</option>
                     <option value="incomplete">未完成</option>
@@ -104,68 +109,150 @@
                     <th>作业</th>
                     <th>状态</th>
                     <th>得分</th>
+                    <th>操作</th>
                 </tr>
             </thead>
-            <tbody id="scoresList"></tbody>
+            <tbody id="workList"></tbody>
         </table>
     </div>
 
     <script>
-        async function loadScores(searchStudentId = '', filterStatus = 'all') {
-            const response = await fetch('/api/get_scores');
-            if (response.ok) {
-                let scores = await response.json();
-                if (searchStudentId) {
-                    scores = scores.filter(score => score.studentId.includes(searchStudentId));
+        const students = ['张三', '小明'];
+        const dbName = 'TestPaper';
+        const dbVersion = 2;
+        let db;
+
+        function openDatabase(callback) {
+            const request = indexedDB.open(dbName, dbVersion);
+
+            request.onerror = function (event) {
+                Swal.fire('错误', '无法打开数据库', 'error');
+            };
+
+            request.onsuccess = function (event) {
+                db = event.target.result;
+                if (callback) callback();
+            };
+
+            request.onupgradeneeded = function (event) {
+                db = event.target.result;
+                if (!db.objectStoreNames.contains('testPaper')) {
+                    db.createObjectStore('testPaper', { keyPath: 'id', autoIncrement: true });
                 }
-                if (filterStatus !== 'all') {
-                    const completed = filterStatus === 'completed';
-                    scores = scores.filter(score => score.completed === completed);
-                }
-                displayScores(scores);
-            } else {
-                Swal.fire('错误', '加载学生分数时出错，请稍后再试', 'error');
-            }
+            };
         }
 
-        function displayScores(scores) {
-            const scoresList = document.getElementById('scoresList');
-            scoresList.innerHTML = '';
+        function loadWorks() {
+            const works = JSON.parse(localStorage.getItem('works')) || [];
+            const workList = document.getElementById('workList');
+            workList.innerHTML = '';
 
-            scores.forEach(score => {
-                const row = document.createElement('tr');
+            const transaction = db.transaction(['testPaper'], 'readonly');
+            const store = transaction.objectStore('testPaper');
+            const request = store.getAll();
 
-                const studentIdCell = document.createElement('td');
-                studentIdCell.textContent = score.studentId;
-                row.appendChild(studentIdCell);
+            request.onsuccess = function (event) {
+                const testPapers = event.target.result;
 
-                const workNameCell = document.createElement('td');
-                workNameCell.textContent = score.workName;
-                row.appendChild(workNameCell);
+                students.forEach(studentId => {
+                    works.forEach((work, index) => {
+                        const row = document.createElement('tr');
 
-                const statusCell = document.createElement('td');
-                statusCell.textContent = score.completed ? '已完成' : '未完成';
-                row.appendChild(statusCell);
+                        const studentIdCell = document.createElement('td');
+                        studentIdCell.textContent = studentId;
+                        row.appendChild(studentIdCell);
 
-                const userScoreCell = document.createElement('td');
-                userScoreCell.textContent = score.userScore;
-                row.appendChild(userScoreCell);
+                        const workNameCell = document.createElement('td');
+                        workNameCell.textContent = work.workName;
+                        row.appendChild(workNameCell);
 
-                scoresList.appendChild(row);
-            });
+                        const statusCell = document.createElement('td');
+                        const userScoreCell = document.createElement('td');
+
+                        if (studentId === '张三') {
+                            const testPaper = testPapers.find(tp => tp.id === work.testPaperId);
+                            if (testPaper) {
+                                let totalScore = 0;
+                                let userScore = 0;
+
+                                testPaper.testPaper.forEach(question => {
+                                    totalScore += question.score || 0;
+                                    if (question.studentAnswer && question.studentAnswer === question.answer) {
+                                        userScore += question.score || 0;
+                                    }
+                                });
+
+                                statusCell.textContent = '已完成';
+                                userScoreCell.textContent = userScore;
+                            } else {
+                                statusCell.textContent = '未完成';
+                                userScoreCell.textContent = '0';
+                            }
+                        } else {
+                            statusCell.textContent = '未完成';
+                            userScoreCell.textContent = '0';
+                        }
+
+                        row.appendChild(statusCell);
+                        row.appendChild(userScoreCell);
+
+                        const actionCell = document.createElement('td');
+                        const viewButton = document.createElement('button');
+                        viewButton.textContent = '详情';
+                        viewButton.onclick = function () {
+                            viewDetails(work.testPaperId, studentId);
+                        };
+                        actionCell.appendChild(viewButton);
+                        row.appendChild(actionCell);
+
+                        workList.appendChild(row);
+                    });
+                });
+            };
+
+            request.onerror = function (event) {
+                Swal.fire('错误', '加载作业时出错，请稍后再试', 'error');
+            };
         }
 
-        document.getElementById('filterStatus').addEventListener('change', () => {
-            const searchStudentId = document.getElementById('searchStudentId').value;
-            loadScores(searchStudentId, document.getElementById('filterStatus').value);
-        });
+        function viewDetails(testPaperId, studentId) {
+            const transaction = db.transaction(['testPaper'], 'readonly');
+            const store = transaction.objectStore('testPaper');
+            const request = store.get(testPaperId);
 
+            request.onsuccess = function (event) {
+                const testPaper = event.target.result.testPaper;
+                let detailsHtml = `<p>学生ID: ${studentId}</p>`;
+                testPaper.forEach((question, index) => {
+                    detailsHtml += `<h3>问题${index + 1}: ${question.content}</h3>`;
+                    detailsHtml += `<p>正确答案: ${question.answer || 'N/A'}</p>`;
+                    detailsHtml += `<p>学生答案: ${question.studentAnswer || 'N/A'}</p>`;
+                });
+
+                Swal.fire({
+                    title: '试卷详情',
+                    html: detailsHtml,
+                    width: 800,
+                    showCloseButton: true
+                });
+            };
+
+            request.onerror = function (event) {
+                Swal.fire('错误', '加载试卷详情时出错，请稍后再试', 'error');
+            };
+        }
+
+        document.getElementById('filterType').addEventListener('change', loadWorks);
         document.getElementById('searchButton').addEventListener('click', () => {
             const searchStudentId = document.getElementById('searchStudentId').value;
-            loadScores(searchStudentId, document.getElementById('filterStatus').value);
+            const works = JSON.parse(localStorage.getItem('works')) || [];
+            const filteredWorks = works.filter(work => work.studentId && work.studentId.includes(searchStudentId));
+            displayWorks(filteredWorks);
         });
 
-        window.onload = () => loadScores();
+        window.onload = function () {
+            openDatabase(loadWorks);
+        };
     </script>
 </body>
 

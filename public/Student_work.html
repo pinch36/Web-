@@ -7,7 +7,7 @@
     <title>作业列表</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
-        body {
+         body {
             user-select: none;
             display: flex;
             justify-content: center;
@@ -48,7 +48,8 @@
             color: #4d4d4d;
         }
 
-        .filter select, .filter input {
+        .filter select,
+        .filter input {
             padding: 10px;
             border-radius: 5px;
             border: 1px solid #ddd;
@@ -60,11 +61,14 @@
             border-collapse: collapse;
         }
 
-        table, th, td {
+        table,
+        th,
+        td {
             border: 1px solid #ddd;
         }
 
-        th, td {
+        th,
+        td {
             padding: 10px;
             text-align: left;
         }
@@ -111,38 +115,65 @@
     </div>
 
     <script>
-        async function loadWorks(searchStudentId = '') {
-            const response = await fetch('/api/get_published_test_papers');
-            if (response.ok) {
-                let works = await response.json();
+        let db;
+
+        function openDatabase(callback) {
+            const request = indexedDB.open('TestPaper', 2);
+
+            request.onerror = function (event) {
+                Swal.fire('错误', '无法打开数据库', 'error');
+            };
+
+            request.onsuccess = function (event) {
+                db = event.target.result;
+                if (callback) callback();
+            };
+
+            request.onupgradeneeded = function (event) {
+                db = event.target.result;
+                if (!db.objectStoreNames.contains('testPaper')) {
+                    db.createObjectStore('testPaper', { keyPath: 'id', autoIncrement: true });
+                }
+            };
+        }
+
+        function loadWorks(searchStudentId = '') {
+            const transaction = db.transaction(['testPaper'], 'readonly');
+            const store = transaction.objectStore('testPaper');
+            const request = store.getAll();
+
+            request.onsuccess = function (event) {
+                let works = event.target.result;
                 if (searchStudentId) {
-                    works = works.filter(work => work.studentId.includes(searchStudentId));
+                    works = works.filter(work => work.studentId && work.studentId.includes(searchStudentId));
                 }
                 displayWorks(works);
-            } else {
+            };
+
+            request.onerror = function (event) {
                 Swal.fire('错误', '加载作业时出错，请稍后再试', 'error');
-            }
+            };
         }
 
         function displayWorks(works) {
             const workList = document.getElementById('workList');
             workList.innerHTML = '';
 
-            works.forEach(work => {
+            works.forEach((work, index) => {
                 const row = document.createElement('tr');
 
                 const workNameCell = document.createElement('td');
-                workNameCell.textContent = work.title || '未命名作业';
+                workNameCell.textContent = `作业${index + 1}${work.testPaper.title || ''}`;
                 row.appendChild(workNameCell);
 
                 const statusCell = document.createElement('td');
-                statusCell.textContent = work.completed ? '已完成' : '未完成';
+                statusCell.textContent = work.completed ? work.status : '未完成';
                 row.appendChild(statusCell);
 
                 const actionCell = document.createElement('td');
                 const viewButton = document.createElement('button');
                 viewButton.textContent = '查看';
-                viewButton.onclick = function() {
+                viewButton.onclick = function () {
                     viewWork(work.id);
                 };
                 actionCell.appendChild(viewButton);
@@ -166,7 +197,9 @@
             loadWorks(searchStudentId);
         });
 
-        window.onload = loadWorks;
+        window.onload = function () {
+            openDatabase(loadWorks);
+        }
     </script>
 </body>
 

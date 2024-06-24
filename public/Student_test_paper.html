@@ -100,6 +100,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const testPaper = JSON.parse(localStorage.getItem('testPaper'));
+        const currentWorkId = localStorage.getItem('currentWorkId');
         const testPaperContainer = document.getElementById('testPaperContainer');
 
         const sectionTitles = {
@@ -163,44 +164,39 @@
         document.getElementById('submitTestButton').addEventListener('click', () => {
             let totalScore = 0;
             let userScore = 0;
+            const userAnswers = [];
 
             testPaper.forEach((q, index) => {
                 totalScore += q.score;
                 const questionName = `question${index + 1}`;
-                let userAnswers = [];
+                let userAnswer = '';
                 if (q.type === 'multiple') {
-                    userAnswers = Array.from(document.getElementsByName(questionName))
+                    userAnswer = Array.from(document.getElementsByName(questionName))
                         .filter(input => input.checked)
                         .map(input => input.value)
                         .join(',');
-                } else if (q.type === 'single') {
+                } else if (q.type === 'single' || q.type === 'boolean') {
                     const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
                     if (selectedOption) {
-                        userAnswers = [selectedOption.value];
-                    }
-                } else if (q.type === 'boolean') {
-                    const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
-                    if (selectedOption) {
-                        userAnswers = [selectedOption.value];
+                        userAnswer = selectedOption.value;
                     }
                 } else {
                     const answerInput = document.querySelector(`input[name="${questionName}"], textarea[name="${questionName}"]`);
                     if (answerInput) {
-                        userAnswers = [answerInput.value];
+                        userAnswer = answerInput.value;
                     }
                 }
 
+                userAnswers.push({ questionId: q.id, userAnswer });
                 const correctAnswers = Array.isArray(q.answer) ? q.answer.join(',') : q.answer;
                 let isCorrect;
 
-                if (q.type === 'single') {
-                    isCorrect = userAnswers.length === 1 && userAnswers[0] === correctAnswers;
+                if (q.type === 'single' || q.type === 'boolean') {
+                    isCorrect = userAnswer === correctAnswers;
                 } else if (q.type === 'multiple') {
-                    isCorrect = userAnswers === correctAnswers;
-                } else if (q.type === 'boolean') {
-                    isCorrect = userAnswers.length === 1 && userAnswers[0] === correctAnswers;
+                    isCorrect = userAnswer === correctAnswers;
                 } else {
-                    isCorrect = userAnswers.length === correctAnswers.length && userAnswers.every((v, i) => v === correctAnswers[i]);
+                    isCorrect = userAnswer === correctAnswers;
                 }
 
                 if (isCorrect) {
@@ -208,8 +204,45 @@
                 }
             });
 
+            saveScoreAndAnswers(currentWorkId, totalScore, userScore, userAnswers);
             Swal.fire('提交', `该试卷总分为${totalScore}分，您得了${userScore}分`, 'success');
         });
+
+        function saveScoreAndAnswers(workId, totalScore, userScore, userAnswers) {
+            const request = indexedDB.open('TestPaper', 2);
+            request.onsuccess = function (event) {
+                const db = event.target.result;
+
+                // 保存到 testPaper 表
+                const transaction = db.transaction(['testPaper'], 'readwrite');
+                const store = transaction.objectStore('testPaper');
+                const getRequest = store.get(Number(workId));
+
+                getRequest.onsuccess = function (event) {
+                    const work = event.target.result;
+                    work.completed = true;
+                    work.status = `总分${totalScore}分，您获得了${userScore}分`;
+                    store.put(work);
+                };
+
+                // 保存到 work 表
+                const workTransaction = db.transaction(['work'], 'readwrite');
+                const workStore = workTransaction.objectStore('work');
+                workStore.add({
+                    workId: Number(workId),
+                    userScore,
+                    totalScore,
+                    userAnswers
+                });
+            };
+
+            request.onupgradeneeded = function (event) {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains('work')) {
+                    db.createObjectStore('work', { keyPath: 'id', autoIncrement: true });
+                }
+            };
+        }
     </script>
 </body>
 

@@ -132,10 +132,18 @@
 
     <script>
         let db;
-        const request = indexedDB.open("webDatabase_" + 2022150110, 2);
+        const request = indexedDB.open("webDatabase_" + 2022150000, 2);
+
+        request.onupgradeneeded = function(event) {
+            db = event.target.result;
+            if (!db.objectStoreNames.contains("questionStore")) {
+                db.createObjectStore("questionStore", { keyPath: "id", autoIncrement: true });
+            }
+        };
 
         request.onsuccess = function(event) {
             db = event.target.result;
+            console.log("Database opened successfully.");
         };
 
         request.onerror = function(event) {
@@ -143,6 +151,12 @@
         };
 
         document.getElementById('generateButton').addEventListener('click', async () => {
+            if (!db) {
+                console.error("Database is not initialized.");
+                Swal.fire('错误', '数据库未初始化，请稍后再试', 'error');
+                return;
+            }
+
             const singleCount = parseInt(document.getElementById('singleCount').value);
             const singleScore = parseInt(document.getElementById('singleScore').value);
             const multipleCount = parseInt(document.getElementById('multipleCount').value);
@@ -190,26 +204,6 @@
                 console.error("Load error: " + event.target.errorCode);
                 Swal.fire('错误', '生成试卷时出错', 'error');
             };
-        });
-
-        document.getElementById('publishButton').addEventListener('click', async () => {
-            const testPaper = JSON.parse(localStorage.getItem('testPaper'));
-            if (!testPaper || testPaper.length === 0) {
-                Swal.fire('错误', '请先生成试卷', 'error');
-                return;
-            }
-
-            const response = await fetch('/api/publish_test', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ testPaper })
-            });
-
-            if (response.ok) {
-                Swal.fire('成功', '试卷已发布', 'success');
-            } else {
-                Swal.fire('错误', '发布试卷时出错，请稍后再试', 'error');
-            }
         });
 
         document.getElementById('viewLastTestButton').addEventListener('click', () => {

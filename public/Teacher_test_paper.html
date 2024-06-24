@@ -96,7 +96,6 @@
     <div class="button-container">
         <button id="publishTestButton">发布试卷</button>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // 从本地存储中获取试卷数据
@@ -161,17 +160,54 @@
             }
         });
 
-        document.getElementById('publishTestButton').addEventListener('click', () => {
-            const testPaper = JSON.parse(localStorage.getItem('testPaper'));
+        const dbName = 'TestPaper';
+        const dbVersion = 2;
+        let db;
 
-            axios.post('/api/publish_test_paper', { testPaper })
-                .then(response => {
-                    Swal.fire('成功', '试卷已发布', 'success');
-                })
-                .catch(error => {
-                    Swal.fire('错误', '发布试卷时出错，请稍后再试', 'error');
-                });
-        });
+        function openDatabase() {
+            const request = indexedDB.open(dbName, dbVersion);
+
+            request.onerror = function (event) {
+                Swal.fire('错误', '无法打开数据库', 'error');
+            };
+
+            request.onsuccess = function (event) {
+                db = event.target.result;
+                saveTestPaper();
+            };
+
+            request.onupgradeneeded = function (event) {
+                db = event.target.result;
+                if (!db.objectStoreNames.contains('testPaper')) {
+                    db.createObjectStore('testPaper', { keyPath: 'id', autoIncrement: true });
+                }
+            };
+        }
+
+        function saveTestPaper() {
+            const transaction = db.transaction(['testPaper'], 'readwrite');
+            const store = transaction.objectStore('testPaper');
+            const request = store.add({ testPaper });
+
+            request.onsuccess = function (event) {
+                const testPaperId = event.target.result;
+                Swal.fire('成功', '试卷已保存到前端数据库', 'success');
+                updateLocalStorage(testPaperId);
+            };
+
+            request.onerror = function () {
+                Swal.fire('错误', '保存试卷时出错，请稍后再试', 'error');
+            };
+        }
+
+        function updateLocalStorage(testPaperId) {
+            let works = JSON.parse(localStorage.getItem('works')) || [];
+            const workName = `作业${works.length + 1}`;
+            works.push({ workName, completed: false, testPaperId });
+            localStorage.setItem('works', JSON.stringify(works));
+        }
+
+        document.getElementById('publishTestButton').addEventListener('click', openDatabase);
     </script>
 </body>
 
